@@ -1,4 +1,4 @@
-# med_express_uav
+# Medical Express UAV
 Code for communication and control of the UAV for medical express uav challenge
 
 ## Environement install
