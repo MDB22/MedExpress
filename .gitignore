@@ -40,3 +40,7 @@ python_env/
 .Trashes
 ehthumbs.db
 Thumbs.db
+
+# Vim swap file #
+## ###############
+*.swp
