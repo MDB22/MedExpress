@@ -20,5 +20,5 @@ sudo apt-get install dpkg-dev build-essential python3-dev libjpeg-dev libtiff-de
 echo "** Dronekit: Install python modules **"
 pip install numpy pyparsing pyserial
 #pip install pyopencv --allow-external pyopencv
-pip install -U --pre -f http://wxpython.org/Phoenix/snapshot-builds/ wxPython_Phoenix
+pip install -U --pre -f http://wxpython.org/Phoenix/snapshot-builds/ wxPython_Phoenix --trusted-host wxpython.org
 pip install droneapi
