@@ -14,11 +14,16 @@ echo "** Create virtual env **"
 pyvenv $PYTHON
 source $PYTHON/bin/activate
 
+echo "** Upgrade pip in the virtual env"
+pip install --upgrade pip
+
 echo "** Dronekit: Setup dependecies **"
 sudo apt-get build-dep python3-numpy python-opencv python3-serial python3-pyparsing
 sudo apt-get install dpkg-dev build-essential python3-dev libjpeg-dev libtiff-dev libsdl1.2-dev libgstreamer-plugins-base0.10-dev 
 echo "** Dronekit: Install python modules **"
 pip install numpy pyparsing pyserial
 #pip install pyopencv --allow-external pyopencv
-pip install -U --pre -f http://wxpython.org/Phoenix/snapshot-builds/ wxPython_Phoenix --trusted-host wxpython.org
+
+# Hopefully can get away with not installing this will take a long time to build
+#pip install -U --pre -f http://wxpython.org/Phoenix/snapshot-builds/ wxPython_Phoenix --trusted-host wxpython.org
 pip install droneapi
