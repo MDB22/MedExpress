@@ -1,6 +1,7 @@
-# Python virtual env #
+# Ignored build directories #
 #####################
 python_env/
+opencv/
 
 # Compiled source #
 ###################
