@@ -3,7 +3,7 @@ LOG="virtual_env_install.log"
 exec &> >(tee $LOG)
 
 PYTHON="python_env"
-PROJECT="~/med_express_uav"
+PROJECT=~/med_express_uav
 
 echo "** Adding core programs **"
 sudo apt-get -y install python3-venv python-pip
@@ -49,7 +49,7 @@ cd $PROJECT
 
 # link the python module as it doesn't install as part of the build
 cd $PYTHON/lib/python3.4/site-packages/
-ln -s $PROJECT/opencv/lib/python3.4/site-packages/cv2.cpython-34m.so cv2.cpython-34m.so
+ln -s ../../../../opencv/lib/python3.4/site-packages/cv2.cpython-34m.so cv2.cpython-34m.so
 cd $PROJECT
 
 echo "** Dronekit: dependencies **"
