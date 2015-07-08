@@ -32,3 +32,4 @@ pip install droneapi
 
 echo "module load droneapi.module.api" >> ~/.mavinit.scr
 ln -s ~/.mavinit.scr mavinit.scr
+sudo usermod -a -G dialout shanonl
