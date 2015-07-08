@@ -36,7 +36,7 @@ ln -s ~/.mavinit.scr mavinit.scr
 echo "** Install Pi stuff **"
 pip install RPi.GPIO
 
-sudo usermod -a -G dialout $USER
+sudo usermod -a -G dialout,kmem $USER
 cd
 git clone https://github.com/richardghirst/PiBits
 cd $PROJECT
