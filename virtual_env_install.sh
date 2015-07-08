@@ -27,8 +27,10 @@ sudo apt-get -y build-dep python-serial python-pyparsing
 
 sudo apt-get -y install python-wxgtk2.8
 
-pip install numpy pyparsing pyserial
+pip install numpy pyparsing pyserial python-smbus
 pip install droneapi
 
 echo "module load droneapi.module.api" >> ~/.mavinit.scr
 ln -s ~/.mavinit.scr mavinit.scr
+
+git clone https://github.com/richardghirst/PiBits
