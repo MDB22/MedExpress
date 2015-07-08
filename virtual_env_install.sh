@@ -40,3 +40,8 @@ sudo usermod -a -G dialout,kmem $USER
 cd
 git clone https://github.com/richardghirst/PiBits
 cd $PROJECT
+
+echo "** Profile setup **"
+echo "source ~/med_express_uav/python_env/bin/activate" >> ~/.profile
+echo "cd ~/med_express_uav" >> ~/.profile
+echo "export PYTHONPATH=~/med_express_uav/modules" >> ~/.profile
