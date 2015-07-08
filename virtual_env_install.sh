@@ -6,59 +6,26 @@ PYTHON="python_env"
 PROJECT=~/med_express_uav
 
 echo "** Adding core programs **"
-sudo apt-get -y install python3-venv python-pip
+sudo apt-get -y install python-pip python-virtualenv
 
 echo "** Building / Rebuilding python virtual env **"
 rm -rf $PYTHON
 
 echo "** Create virtual env **"
-pyvenv $PYTHON
+virtualenv -p /usr/bin/python2.7 $PYTHON
 source $PYTHON/bin/activate
 
-echo "** Upgrade pip in the virtual env"
-pip install --upgrade pip
-
 echo "** opencv **"
-echo "** opencv: dependencies **"
-sudo apt-get -y install build-essential
-sudo apt-get -y install cmake git libgtk2.0-dev pkg-config libavcodec-dev libavformat-dev libswscale-dev
-sudo apt-get -y build-dep python3-numpy python-opencv 
-sudo apt-get -y install dpkg-dev build-essential python3-dev libjpeg-dev libtiff-dev libsdl1.2-dev libgstreamer-plugins-base0.10-dev 
-
+sudo apt-get -y install python-opencv python-numpy
 pip install numpy 
+# copy over opencv pacakges as not availble by pip
+#cp /usr/lib/python2.7/dist-packages/cv.py /usr/lib/python2.7/dist-packages/cv2.so $PROJECT/$PYTHON/lib/python2.7/site-packages/
+cp /usr/share/pyshared/cv.py /usr/lib/pyshared/python2.7/cv2.so $PROJECT/$PYTHON/lib/python2.7/site-packages/
 
-# Remove ant as the opencv build seems to fail on java
-sudo apt-get -y remove ant
+echo "** Dronekit **"
+sudo apt-get -y build-dep python-serial python-pyparsing
 
-# build in home dir
-cd ~
-
-echo "** opencv: install **"
-wget https://github.com/Itseez/opencv/archive/3.0.0.zip
-unzip 3.0.0.zip
-
-cd opencv-3.0.0
-mkdir release
-cd release
-
-cmake -D CMAKE_BUILD_TYPE=RELEASE -D CMAKE_INSTALL_PREFIX="$PROJECT/opencv" -D PYTHON_EXECUTABLE=$(which python) ..
-
-make -j 4
-make install
-cd $PROJECT
-
-# link the python module as it doesn't install as part of the build
-cd $PYTHON/lib/python3.4/site-packages/
-ln -s ../../../../opencv/lib/python3.4/site-packages/cv2.cpython-34m.so cv2.cpython-34m.so
-cd $PROJECT
-
-echo "** Dronekit: dependencies **"
-sudo apt-get -y build-dep python3-serial python3-pyparsing
+sudo apt-get -y install python-wxgtk2.8
 
 pip install numpy pyparsing pyserial
-
-# Hopefully can get away with not installing this will take a long time to build
-#pip install -U --pre -f http://wxpython.org/Phoenix/snapshot-builds/ wxPython_Phoenix --trusted-host wxpython.org
-
-echo "** Dronekit: install **"
 pip install droneapi
