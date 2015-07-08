@@ -33,6 +33,9 @@ pip install droneapi
 echo "module load droneapi.module.api" >> ~/.mavinit.scr
 ln -s ~/.mavinit.scr mavinit.scr
 
+echo "** Install Pi stuff **"
+pip install RPi.GPIO
+
 sudo usermod -a -G dialout $USER
 cd
 git clone https://github.com/richardghirst/PiBits
