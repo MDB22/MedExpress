@@ -1,13 +1,25 @@
 import multiprocessing
+import time
 from log import *
 
 class UavStateUpdater(multiprocessing.Process):
     def __init__(self, uav_state, vehicle, log_q):
-        pass
+        super(UavStateUpdater, self).__init__()
+        self.uav_state = uav_state
+        self.log_q = log_q
 
     def run(self):
         while True:
-            pass
+            self.uav_state.setTest(self.uav_state.getTest() + "1")
+            time.sleep(3)
 
-class UavState(log_q):
-    pass
+class UavState():
+    def __init__(self):
+        self.test = "test uav state"
+
+    #TODO set up attibutes / properties
+    def getTest(self):
+        return self.test
+    #TODO Locking on writes
+    def setTest(self, test):
+        self.test = test
