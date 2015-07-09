@@ -27,7 +27,7 @@ MIN_ANGLE = 0
 MAX_ANGLE = 180
 
 # LiDAR poll frequency in Hz
-FREQ = 100
+FREQ = 65
 
 # Linear map from desired angle to control value
 def map(value, in_low, in_high, out_low, out_high):
@@ -77,7 +77,8 @@ class LidarSystem:
 		
 		try:
 			self.sendCommand(servo, pulseWidth)
-		except IOError:
+		except IOError as e:
+			print e
 			print 'Cannot move to the desired angle: ' + str(angle)
 	
 	# Send the angle command in microseconds to the servo
@@ -91,14 +92,22 @@ class LidarSystem:
 	# Performs raster scan with LiDAR
 	def scan(self):
 		data = []
+		up = True
+		
 		while True:
 			for angle in range(MIN_ANGLE, MAX_ANGLE+1):
 				# Move tilt servo
 				self.setAngle(self.tilt, angle)
-				# Sweep in one direction
-				data.append(self.sweep(MIN_ANGLE, MAX_ANGLE+1))
-				# Sweep the other direction
-				data.append(self.sweep(MAX_ANGLE, MIN_ANGLE-1))
+				
+				if up:
+					# Sweep in one direction
+					data.append(self.sweep(MIN_ANGLE, MAX_ANGLE+1))
+				else:
+					# Sweep the other direction
+					data.append(self.sweep(MAX_ANGLE, MIN_ANGLE-1))
+					
+				# Change direction
+				up = not up
 			
 		# TODO: Dump data to log file
 	
