@@ -15,11 +15,10 @@ try:
 	print "Waiting for sensor to settle"
 	time.sleep(2)
 
-except:
-	GPIO.cleanup()
 
-while True:
-	try:
+
+	while True:
+	
 		print "Distance Measurement In Progress"
 		GPIO.output(TRIG, True)
 		time.sleep(0.00001)
@@ -37,9 +36,9 @@ while True:
 		
 		distance = round(distance, 2)
 		
-		print "Distance:", distance, "cm"
+		print "Ultrasonic: ", distance, "cm"
 		
-	except Exception as e:
-		print e
-		GPIO.cleanup()
-		break
+	
+except:
+	print e
+	GPIO.cleanup()
