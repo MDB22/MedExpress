@@ -1,6 +1,6 @@
 import multiprocessing
 import time
-from logging import log
+from logging import Log
 
 class Interface(multiprocessing.Process):
     def __init__(self, flight_command, log_q):

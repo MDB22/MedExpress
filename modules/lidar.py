@@ -20,7 +20,7 @@ FREQ_MAX = 500
 FREQ_MIN = 1
 
 # Delay to allow LiDAR reads to settle, in seconds
-SETTLING_DELAY = 3
+SETTLING_DELAY = 1
 	
 class Lidar:
 		

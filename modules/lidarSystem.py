@@ -117,13 +117,14 @@ class LidarSystem:
 		angles = []
 		
 		if start < end:
-			angles = range(start, end)
+			angles = range(start, end, 2)
 		else:
-			angles = range(start, end, -1)
+			angles = range(start, end, -2)
 			
 		for angle in angles:
 			self.setAngle(self.pan, angle)
 			data.append(self.lidar.getRange())
 			print data[-1]
 		
+		print "Length is" + str(len(data))
 		return data

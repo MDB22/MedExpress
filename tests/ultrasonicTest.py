@@ -38,7 +38,6 @@ try:
 		
 		print "Ultrasonic: ", distance, "cm"
 		
-	
 except:
 	print e
 	GPIO.cleanup()

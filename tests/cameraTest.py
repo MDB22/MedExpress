@@ -1,4 +1,5 @@
 import cv2
+import time
  
 # Camera 0 is the integrated web cam on my netbook
 camera_port = -1
@@ -19,6 +20,15 @@ print("Taking image...")
 camera_capture = get_image()
 
 file = "test_image.jpg"
+# A nice feature of the imwrite method is that it will automatically choose the
+# correct format based on the file extension you provide. Convenient!
+cv2.imwrite(file, camera_capture)
+
+time.sleep(5)
+
+camera_capture = get_image()
+
+file = "test_image1.jpg"
 # A nice feature of the imwrite method is that it will automatically choose the
 # correct format based on the file extension you provide. Convenient!
 cv2.imwrite(file, camera_capture)

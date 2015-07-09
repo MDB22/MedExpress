@@ -16,11 +16,7 @@ class Camera():
 	# Cleanup operations
 	def __del__(self):
 		self.camera.release()
-		
-	# Verify if provided image name has valid extension
-	def __hasValidExtension__(self, filename):
-		return True
-	
+			
 	# Captures a single image from the camera
 	def getImage(self):
 		retval, image = self.camera.read()
@@ -29,17 +25,18 @@ class Camera():
 		# If retval is False, something has gone wrong, throw exception
 		if retval is False:
 			print 'Error'
-			pass
+			# Exception here
 		
 		return image;
 		
 	# Writes the stored image to the given file location
 	def writeImage(self, path, filename, image):
-		# If there is no valid extension, can't write image
-		if not self.__hasValidExtension__(filename):
-			pass
-		else:
-			cv2.imwrite(filename, image)
+		retval = self.camera.grab()
+		print retval
+		retval, image = self.camera.retrieve()
+		print retval
+		
+		print cv2.imwrite(path + filename, image)
 			
 	def showImage(self, windowName, image):
 		cv2.imshow(windowName, image)
