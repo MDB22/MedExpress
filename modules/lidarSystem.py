@@ -3,6 +3,7 @@
 
 import os
 import multiprocessing
+import pickle
 import numpy as np
 
 from servoControl import * 
@@ -21,30 +22,26 @@ PINS = '7,11'
 SERVO_PIPE = '/dev/servoblaster'
 
 # Limits for servo controls in microseconds, approximate 180o arc
-MIN_WIDTH = 1000
-MAX_WIDTH = 2300
+MIN_WIDTH_PAN = 600
+MAX_WIDTH_PAN = 2300
+MIN_WIDTH_TILT = 1150
+MAX_WIDTH_TILT = 2300
 
 # Servo angle limits
-MIN_ANGLE = 0
-MAX_ANGLE = 180
+MIN_ANGLE_PAN = 0
+MAX_ANGLE_PAN = 180
+MIN_ANGLE_TILT = 80
+MAX_ANGLE_TILT = 180
 
 # Angle increment for different scan resolutions
 ANGLE_INC = 5
 
 # Resolution of scans (at 5o increments)
-NUM_POINTS_PER_PAN = 148
-NUM_POINTS_PER_TILT = 37
+NUM_POINTS_PER_PAN = 40
+NUM_POINTS_PER_TILT = 160
 
 # LiDAR poll frequency in Hz
 FREQ = 65
-
-# Linear map from desired angle to control value
-def map(value, in_low, in_high, out_low, out_high):
-        # Convert the initial value into a 0-1 range (float)
-        valueScaled = (value - in_low) / float(in_high - in_low)
-
-        # Convert the 0-1 range into a value in the new range.
-        return out_low + valueScaled * (out_high - out_low)
 
 class LidarSystem(multiprocessing.Process):
     
@@ -62,45 +59,30 @@ class LidarSystem(multiprocessing.Process):
         
         # Open pipe to GPIO
         self.pipe = open(SERVO_PIPE,'w')
+
+        # Tuples for passing to servo objects
+        pan_limits = (MIN_ANGLE_PAN, MAX_ANGLE_PAN, MIN_WIDTH_PAN, MAX_WIDTH_PAN)
+        tilt_limits = (MIN_ANGLE_TILT, MAX_ANGLE_TILT, MIN_WIDTH_TILT, MAX_WIDTH_TILT)
         
-        # Create servo controllers for pan and tilt
-        self.pan = ServoControl(1)
-        self.tilt = ServoControl(0)
+        # Create servo controllers for pan and tilt, pass limit values
+        self.pan = ServoControl(0, 'pan', pan_limits)
+        self.tilt = ServoControl(1, 'tilt', tilt_limits)
         
         # Create lidar object
-        self.lidar = Lidar(FREQ)
+        self.lidar = Lidar(FREQ)        
         
-    def __del__(self):
+        # 2D array for scans, initialised to "error" value of -1
+        self.data = np.zeros((NUM_POINTS_PER_TILT, NUM_POINTS_PER_PAN), dtype=float) - 1
+        self.all_data = []
+        
+    def __del__(self):  
+        self.cleanup()
+        
+    def cleanup(self):        
         # Kill the servo process during cleanup
-        os.system('sudo killall servod -q')
-    
-    # Set the angle of only the pan servo (debug purposes)
-    def setPanAngle(self, angle):
-        self.setAngle(self.pan, angle)
-        
-    # Set the angle of only the tilt servo (debug purposes)
-    def setTiltAngle(self, angle):
-        self.setAngle(self.tilt, angle)
-    
-    # Set the angle of a servo
-    def setAngle(self, servo, angle):
-        
-        pulseWidth = map(angle, MIN_ANGLE, MAX_ANGLE, MIN_WIDTH, MAX_WIDTH)
-        
-        try:
-            self.sendCommand(servo, pulseWidth)
-        except IOError as e:
-            print e
-            print 'Cannot move to the desired angle: ' + str(angle)
-    
-    # Send the angle command in microseconds to the servo
-    def sendCommand(self, servo, width):
-        # Throw exception if angle is not valid
-        if (width < MIN_WIDTH or width > MAX_WIDTH):
-            raise IOError()
-            
-        servo.setPosition(self.pipe, width)
-            
+        import os
+        print "Killing servo process"
+        os.system('sudo killall servod -q')   
     
     # Performs raster scan with LiDAR
     def scan(self):
@@ -110,7 +92,7 @@ class LidarSystem(multiprocessing.Process):
         while True:
             for angle in range(MIN_ANGLE, MAX_ANGLE+1, ANGLE_INC):
                 # Move tilt servo
-                self.setAngle(self.tilt, angle)
+                self.tilt.setAngle(self.pipe,angle)
                 
                 if up:
                     # Sweep in one direction
@@ -121,13 +103,10 @@ class LidarSystem(multiprocessing.Process):
                     
                 # Change direction
                 up = not up
-            
-        # TODO: Dump data to log file
-    
+                
     # Sweeps pan servo across its arc
     def sweep(self, start, end):
         data = []
-        angles = []
         
         if start < end:
             angles = range(start, end, ANGLE_INC)
@@ -135,7 +114,7 @@ class LidarSystem(multiprocessing.Process):
             angles = range(start, end, -ANGLE_INC)
             
         for angle in angles:
-            self.setAngle(self.pan, angle)
+            self.pan.setAngle(self.pipe,angle)
             data.append(self.lidar.getRange())
             print data[-1]
         
@@ -144,8 +123,8 @@ class LidarSystem(multiprocessing.Process):
         
     # Run method for Process, performs in-flight, low-res scan
     def run(self):
-        # 2D array for scans, initialised to "error" value of -1
-        data = np.zeros((NUM_POINTS_PER_TILT, NUM_POINTS_PER_PAN), dtype=float) - 1
+        # Counts number of data arrays written
+        data_count = 0
         
         # Control for changing direction of sweep
         pan_direction = -1
@@ -156,38 +135,64 @@ class LidarSystem(multiprocessing.Process):
         tilt_index = 0
         
         # Start both servos at close to 0
-        pan_angle = 0
-        tilt_angle = 0
+        pan_angle = MIN_ANGLE_PAN
+        tilt_angle = MIN_ANGLE_TILT
         
         # Offset to get overlapping scans
         pan_offset = 1.25
         
         # Initialise servos
-        self.setAngle(self.pan, pan_angle)
-        self.setAngle(self.tilt, tilt_angle)
-        data[tilt_index, pan_index] = self.lidar.getRange()
-                
+        self.pan.setAngle(self.pipe,pan_angle)
+        self.tilt.setAngle(self.pipe,tilt_angle)
+        self.data[tilt_index, pan_index] = self.lidar.getRange()
+        
         while True:
             # If tilt exceeds limit, reverse direction
-            if tilt_angle >= 180 or tilt_angle <= 0:
+            if tilt_angle <= MIN_ANGLE_TILT or tilt_angle >= MAX_ANGLE_TILT:
                 tilt_direction *= -1
-            
-            # If pan exceeds limit, reverse direction
-            if pan_angle >= 180 or pan_angle <= 0:
-                pan_direction *= -1
-            
-            pan_angle += pan_direction * ANGLE_INC/float(4)             
-            pan_index += pan_direction 
+                print "Appending"
+                self.all_data.append(self.data)
+                self.data = np.zeros((NUM_POINTS_PER_TILT, NUM_POINTS_PER_PAN), dtype=float) - 1
+                data_count += 1
                 
-            tilt_angle += tilt_direction * ANGLE_INC                
+                if data_count == 60:   
+                    data_count = 0
+                    # Write data to file
+                    print "Pickling data"
+                    data_out = open('data.out', 'w')
+                    pickle.dump(self.all_data, data_out)
+                    data_out.close()
+                    return
+              
+            # If pan exceeds limit, reverse direction
+            if pan_angle <= MIN_ANGLE_PAN or pan_angle >= MAX_ANGLE_PAN:
+                pan_direction *= -1
+                
+            pan_angle += pan_direction * ANGLE_INC            
+            pan_index += pan_direction 
+                 
+            tilt_angle += tilt_direction * ANGLE_INC/4.      
             tilt_index += tilt_direction 
+                
+            self.pan.setAngle(self.pipe,pan_angle)
+            self.tilt.setAngle(self.pipe,tilt_angle)
+            d = self.lidar.getRange()
+            self.data[tilt_index, pan_index] = d
+                
+            #print "Pan at " + str(pan_angle)
+            #print "Tilt at " + str(tilt_angle)
+            #print "Just read: " + str(data[tilt_index, pan_index])            
             
-            self.setAngle(self.pan, pan_angle)
-            self.setAngle(self.tilt, tilt_angle)
-            data[tilt_index, pan_index] = self.lidar.getRange()
-            
-            print "Pan at " + str(pan_angle)
-            print "Tilt at " + str(tilt_angle)
-            print "Just read: " + str(data[tilt_index, pan_index])
-            
-            
+if __name__ == '__main__':            
+    l = LidarSystem()
+    l.start()
+    
+    time.sleep(60)
+    
+    l.join()
+    
+    print "Unpickling"
+    import pickle
+    data_in = open('data.out')
+    data = pickle.load(data_in)
+    print data
