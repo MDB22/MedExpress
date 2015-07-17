@@ -1,6 +1,6 @@
 import multiprocessing
 import time
-from log import *
+from logging import log
 
 class UavStateUpdater(multiprocessing.Process):
     def __init__(self, uav_state, vehicle, log_q):

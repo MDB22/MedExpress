@@ -1,6 +1,5 @@
 import multiprocessing
 import time
-from log import *
 
 class Logging(multiprocessing.Process):
     def __init__(self, log_q):
@@ -9,5 +8,16 @@ class Logging(multiprocessing.Process):
 
     def run(self):
         while True:
-            log = self.log_q.get()
-            print log
+            print self.log_q.get()
+
+class Log:
+    """ Data structure for logs
+
+    module: Name of logged module
+    data:   Dictionary of logged attributes
+    """
+    def __init__(self, module, data):
+        pass
+
+    def __str__(self):
+        print "TODO"

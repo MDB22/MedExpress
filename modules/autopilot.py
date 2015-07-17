@@ -1,6 +1,6 @@
 import multiprocessing
 import time
-from log import *
+from logging import log
 
 class Autopilot(multiprocessing.Process):
     def __init__(self, vehicle, vehicle_command, log_q):

@@ -5,7 +5,6 @@ from interface import *
 from logging import *
 from flight import *
 from autopilot import *
-from log import *
 
 import multiprocessing
 from multiprocessing.managers import BaseManager

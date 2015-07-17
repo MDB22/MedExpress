@@ -1,6 +1,6 @@
 import multiprocessing
 import time
-from log import *
+from logging import log
 
 class WorldStateUpdater(multiprocessing.Process):
     def __init__(self, world_state, log_q):
