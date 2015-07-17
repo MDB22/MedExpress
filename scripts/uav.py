@@ -21,20 +21,20 @@ vehicle = "test"
 # Create shared queues and pipes
 log_q = multiprocessing.Queue()
 
-fc_pipe = multiprocessing.Pipe()
+flight_command = multiprocessing.Pipe()
 fc_send_lock = multiprocessing.Lock()
 fc_recv_lock = multiprocessing.Lock()
-flight_command = fc_pipe + (fc_send_lock, fc_recv_lock)
+flight_command += (fc_send_lock, fc_recv_lock)
 
-vc_pipe = multiprocessing.Pipe()
+vehicle_command = multiprocessing.Pipe()
 vc_send_lock = multiprocessing.Lock()
 vc_recv_lock = multiprocessing.Lock()
-vehicle_command = vc_pipe + (vc_send_lock, vc_recv_lock)
+vehicle_command += (vc_send_lock, vc_recv_lock)
 
 # Shared memory for state objects
 class StateManager(BaseManager): pass
-StateManager.register('UavState', UavState)  # TODO set to only expose read functions
-StateManager.register('WorldState', WorldState)  # TODO set to only expose read functions
+StateManager.register('UavState', UavState)
+StateManager.register('WorldState', WorldState)
 state_manager = StateManager()
 state_manager.start()
 uav_state = state_manager.UavState()
@@ -55,3 +55,11 @@ interface.start()
 logging.start()
 autopilot.start()
 flight.start()
+
+# Wait for processes to finish
+uav_state_updater.join()
+world_state_updater.join()
+interface.join()
+logging.join()
+autopilot.join()
+flight.join()
