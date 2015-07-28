@@ -10,7 +10,8 @@ from servoControl import *
 from lidar import *
 
 # Path to ServoBlaster process, need to make generic to each user
-PATH = '/home/mdb/ServoBlaster/'
+PIPE_PATH = '/home/mdb/ServoBlaster/'
+WRITE_PATH = '../tests/'
 
 # Step size of 2us to allow more accurate scans
 STEP_SIZE = 2
@@ -37,8 +38,8 @@ MAX_ANGLE_TILT = 180
 ANGLE_INC = 5
 
 # Resolution of scans (at 5o increments)
-NUM_POINTS_PER_PAN = 40
-NUM_POINTS_PER_TILT = 160
+NUM_POINTS_PER_PAN = 37
+NUM_POINTS_PER_TILT = 81
 
 # LiDAR poll frequency in Hz
 FREQ = 65
@@ -54,7 +55,7 @@ class LidarSystem(multiprocessing.Process):
         os.system('sudo killall servod -q')
         
         # Create a new servo process
-        os.system('sudo ' + PATH + 'servod --step-size=' + 
+        os.system('sudo ' + PIPE_PATH + 'servod --step-size=' + 
             str(STEP_SIZE) + 'us ' + '--p1pins=' + PINS)
         
         # Open pipe to GPIO
@@ -71,8 +72,8 @@ class LidarSystem(multiprocessing.Process):
         # Create lidar object
         self.lidar = Lidar(FREQ)        
         
-        # 2D array for scans, initialised to "error" value of -1
-        self.data = np.zeros((NUM_POINTS_PER_TILT, NUM_POINTS_PER_PAN), dtype=float) - 1
+        # 2D array for scans, initialised to NaN
+        self.data = np.zeros((NUM_POINTS_PER_TILT, NUM_POINTS_PER_PAN), dtype=float)*np.NaN
         self.all_data = []
         
     def __del__(self):  
@@ -150,16 +151,17 @@ class LidarSystem(multiprocessing.Process):
             # If tilt exceeds limit, reverse direction
             if tilt_angle <= MIN_ANGLE_TILT or tilt_angle >= MAX_ANGLE_TILT:
                 tilt_direction *= -1
-                print "Appending"
+                print tilt_index
+                print "Appending array " + str(data_count)
                 self.all_data.append(self.data)
-                self.data = np.zeros((NUM_POINTS_PER_TILT, NUM_POINTS_PER_PAN), dtype=float) - 1
+                self.data = np.zeros((NUM_POINTS_PER_TILT, NUM_POINTS_PER_PAN), dtype=float)*np.NaN
                 data_count += 1
                 
-                if data_count == 60:   
+                if data_count == 30:   
                     data_count = 0
                     # Write data to file
                     print "Pickling data"
-                    data_out = open('data.out', 'w')
+                    data_out = open(WRITE_PATH + 'data.out', 'w')
                     pickle.dump(self.all_data, data_out)
                     data_out.close()
                     return
@@ -193,6 +195,10 @@ if __name__ == '__main__':
     
     print "Unpickling"
     import pickle
-    data_in = open('data.out')
+    data_in = open(WRITE_PATH + 'data.out')
     data = pickle.load(data_in)
     print data
+    i = 0
+    for d in data:
+    	    np.savetxt(WRITE_PATH + 'data' + str(i) + '.csv',np.asarray(d),'%3.2f',',')
+    	    i += 1
