@@ -48,6 +48,14 @@ NUM_POINTS_PER_TILT = SPEED_RATIO*(MAX_ANGLE_TILT - MIN_ANGLE_TILT)/ANGLE_INC + 
 # LiDAR poll frequency in Hz
 FREQ = 65
 
+# Offset distances and angles to convert from LiDAR frame to UAV frame
+OFFSET_1TO2_TX = 0.5
+OFFSET_1TO2_TZ = 2.1
+
+OFFSET_3TO4_TX = -3.5
+OFFSET_3TO4_TZ = -2.5
+OFFSET_3TO4_RZ = np.radians(90)
+
 class LidarSystem(multiprocessing.Process):
     
     def __init__(self):
@@ -88,6 +96,33 @@ class LidarSystem(multiprocessing.Process):
         import os
         print "Killing servo process"
         os.system('sudo killall servod -q')   
+
+    # Converts a LiDAR distance measurement to a vector in the UAV frame 
+    def toUAVFrame(self, pan, tilt, distance):
+        print distance
+        
+        pan = np.radians(pan)
+        tilt = np.radians(90)
+        
+        # First we convert the distance to a vector, so we can use matrix maths
+        vec = np.array([0, 0, distance, 1])
+        print vec
+        
+        T_1TO2 = np.array([[1, 0, 0, OFFSET_1TO2_TX],
+                           [0, 1, 0, 0],
+                           [0, 0, 1, OFFSET_1TO2_TZ],
+                           [0, 0, 0, 1]])
+        
+        vec = np.dot(T_1TO2, vec)
+        print vec
+        
+        T_2TO3 =  np.array([[np.cos(tilt), 0, np.sin(tilt), 0],
+                           [0, 1, 0, 0],
+                           [-np.sin(tilt), 0, np.cos(tilt), 0],
+                           [0, 0, 0, 1]])
+        
+        vec = np.dot(T_2TO3, vec)
+        print vec
     
     # Performs raster scan with LiDAR
     def scan(self):
@@ -144,27 +179,21 @@ class LidarSystem(multiprocessing.Process):
         tilt_angle = MIN_ANGLE_TILT
         
         # Initialise servos
-        self.pan.setAngle(pan_angle)
-        self.tilt.setAngle(tilt_angle)
-        self.data[tilt_index, pan_index] = self.lidar.getRange()
         
         while True:
+            # Update servos
+            self.pan.setAngle(pan_angle)
+            self.tilt.setAngle(tilt_angle)
+            
+            # Get data and transform it to the UAV coordinate frame
+            self.data[tilt_index, pan_index] = self.toUAVFrame(
+                pan_angle, tilt_angle, self.lidar.getRange())
+            
+            return
+            
             # If tilt exceeds limit, reverse direction
             if tilt_angle <= MIN_ANGLE_TILT or tilt_angle >= MAX_ANGLE_TILT:
                 tilt_direction *= -1
-                #print "Appending array " + str(data_count)
-                #self.all_data.append(self.data)
-                #self.data = np.zeros((NUM_POINTS_PER_TILT, NUM_POINTS_PER_PAN), dtype=float)*np.NaN
-                #data_count += 1
-                
-                #if data_count == 20:   
-                #    data_count = 0
-                #    # Write data to file
-                #    print "Pickling data"
-                #    data_out = open(WRITE_PATH + 'data.out', 'w')
-                #    pickle.dump(self.all_data, data_out)
-                #    data_out.close()
-                #    return
               
             # If pan exceeds limit, reverse direction
             if pan_angle <= MIN_ANGLE_PAN or pan_angle >= MAX_ANGLE_PAN:
@@ -174,27 +203,22 @@ class LidarSystem(multiprocessing.Process):
             pan_index += pan_direction 
                  
             tilt_angle += tilt_direction * ANGLE_INC/4.      
-            tilt_index += tilt_direction 
-                
-            self.pan.setAngle(pan_angle)
-            self.tilt.setAngle(tilt_angle)
-            d = self.lidar.getRange()
-            self.data[tilt_index, pan_index] = d         
+            tilt_index += tilt_direction       
             
 if __name__ == '__main__':            
     l = LidarSystem()
     l.start()
     
-    time.sleep(60)
+    #time.sleep(60)
     
     l.join()
     
-    print "Unpickling"
-    import pickle
-    data_in = open(WRITE_PATH + 'data.out')
-    data = pickle.load(data_in)
-    print data
-    i = 0
-    for d in data:
+    #print "Unpickling"
+    #import pickle
+    #data_in = open(WRITE_PATH + 'data.out')
+    #data = pickle.load(data_in)
+    #print data
+    #i = 0
+    #for d in data:
     	    #np.savetxt(WRITE_PATH + 'data' + str(i) + '.csv',np.asarray(d),'%3.2f',',')
-    	    i += 1
+    #	    i += 1
