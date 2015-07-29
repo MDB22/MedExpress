@@ -2,7 +2,7 @@ import multiprocessing
 from droneapi.lib import VehicleMode, Location
 from pymavlink import mavutil
 import time
-from uav_logging import Log
+from uav_logging import *
 
 class Autopilot():
     ARM_TIMEOUT = 20
@@ -14,6 +14,7 @@ class Autopilot():
         self.vehicle = api.get_vehicles()[0]
         self.vc_send, self.vc_recv, self.vc_send_lock, self.vc_recv_lock = vehicle_command
         self.log_q = log_q
+        self.module_name = self.__class__.__name__
 
     def takeoff(self, altitude):
         """ fly to altitude

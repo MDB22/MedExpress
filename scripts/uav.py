@@ -12,8 +12,14 @@ from multiprocessing.managers import BaseManager
 api = local_connect()
 #vehicle = api.get_vehicles()[0]
 
+# Logging setup todo define log types
+log_file = "test.log" #todo proper location
+file_log_types = (LogType.notice, LogType.stat, LogType.error, LogType.debug)
+interface_log_types = (LogType.notice, LogType.error)
+
 # Create shared queues and pipes
 log_q = multiprocessing.Queue()
+ilog_q = multiprocessing.Queue()
 
 flight_command = multiprocessing.Pipe()
 fc_send_lock = multiprocessing.Lock()
@@ -37,8 +43,8 @@ world_state = state_manager.WorldState()
 # Create objects for process modules
 uav_state_updater = UavStateUpdater(uav_state, vehicle_command, log_q)
 world_state_updater = WorldStateUpdater(world_state, log_q)
-interface = Interface(flight_command, log_q)
-logging = Logging(log_q)
+interface = Interface(flight_command, log_q, ilog_q)
+logging = Logging(log_q, (log_file, file_log_types, ilog_q, interface_log_types))
 flight = Flight(uav_state, world_state, flight_command, vehicle_command, log_q)
 
 # TODO uncaught error / exception from on of these process should initiate emergency mode
