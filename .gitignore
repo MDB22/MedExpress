@@ -33,6 +33,7 @@ opencv/
 *.sqlite
 *.raw
 *.tlog
+*.csv
  
 # OS generated files #
 ######################
