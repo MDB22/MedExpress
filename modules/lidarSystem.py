@@ -4,6 +4,7 @@
 import os
 import csv
 import math
+import time
 import pickle
 import multiprocessing
 import numpy as np
@@ -51,18 +52,22 @@ NUM_POINTS_PER_TILT = SPEED_RATIO*(MAX_ANGLE_TILT - MIN_ANGLE_TILT)/ANGLE_INC + 
 FREQ = 65
 
 # Offset distances and angles to convert from LiDAR frame to UAV frame
-OFFSET_1TO2_TX = 0.5
-OFFSET_1TO2_TZ = 2.1
+OFFSET_TO_SERVO_TX = 0.5
+OFFSET_TO_SERVO_TZ = 2.1
 
-OFFSET_3TO4_TX = 3.5
-OFFSET_3TO4_TZ = 2.5
-OFFSET_3TO4_RZ = np.radians(90)
+OFFSET_TO_PAN_TX = 3.5
+OFFSET_TO_PAN_TZ = 2.5
+
+OFFSET_TO_PIXHAWK = 35
 
 class LidarSystem(multiprocessing.Process):
     
-    def __init__(self):
+    def __init__(self, period, queue):
         # Call superclass init
         super(LidarSystem, self).__init__()
+        
+        # Store the period (in milliseconds) for pushing to the queue
+        self.period = period
         
         # Need to kill the process if it is already running, or we can't
         # create a new one or change parameters
@@ -90,6 +95,9 @@ class LidarSystem(multiprocessing.Process):
         self.data = np.zeros((NUM_POINTS_PER_TILT, NUM_POINTS_PER_PAN), dtype=float)*np.NaN
         self.all_data = []
         
+        # Store the queue object to communicate with the other processes
+        self.queue = queue
+        
     def __del__(self):  
         self.cleanup()
         
@@ -106,15 +114,16 @@ class LidarSystem(multiprocessing.Process):
         pan = np.radians(pan_deg)
         tilt = np.radians(tilt_deg)
         
-        # First we convert the distance to a vector, so we can use matrix maths
-        vec = np.array([0, 0, distance, 1])
-        
-        vec = np.array([OFFSET_3TO4_TZ*cos(pan) + OFFSET_1TO2_TZ*cos(pan)*cos(tilt) -
-                OFFSET_1TO2_TX*cos(pan)*sin(tilt) + cos(pan)*cos(tilt)*distance,
-                       OFFSET_3TO4_TZ*sin(pan) + OFFSET_1TO2_TZ*cos(tilt)*sin(pan) -
-                OFFSET_1TO2_TX*sin(pan)*sin(tilt) + sin(pan)*cos(tilt)*distance,
-                       -OFFSET_1TO2_TX*cos(tilt) - OFFSET_1TO2_TZ*sin(tilt) 
-                        - distance*sin(tilt) - OFFSET_3TO4_TX])
+        # Convert directly to distance vecotr, with origin at PixHawk
+        vec = np.array([
+                OFFSET_TO_PAN_TZ*cos(pan) + OFFSET_TO_SERVO_TZ*cos(pan)*cos(tilt) -
+            OFFSET_TO_SERVO_TX*cos(pan)*sin(tilt) + cos(pan)*cos(tilt)*distance
+            + OFFSET_TO_PIXHAWK,
+                OFFSET_TO_PAN_TZ*sin(pan) + OFFSET_TO_SERVO_TZ*cos(tilt)*sin(pan) -
+            OFFSET_TO_SERVO_TX*sin(pan)*sin(tilt) + sin(pan)*cos(tilt)*distance,
+                -OFFSET_TO_SERVO_TX*cos(tilt) - OFFSET_TO_SERVO_TZ*sin(tilt) 
+            - distance*sin(tilt) - OFFSET_TO_PAN_TX
+        		])
         
         return vec[0:3]
     
@@ -157,6 +166,9 @@ class LidarSystem(multiprocessing.Process):
         
     # Run method for Process, performs in-flight, low-res scan
     def run(self):
+    	# Timer for updating UAV parameters
+    	timer = 0
+    	    
         # Counts number of data arrays written
         data_count = 0
         
@@ -175,6 +187,9 @@ class LidarSystem(multiprocessing.Process):
         # Initialise servos
         
         while True:
+            # Update timer
+            timer = time.time()
+            
             # Update servos
             self.pan.setAngle(pan_angle)
             self.tilt.setAngle(tilt_angle)
@@ -198,31 +213,9 @@ class LidarSystem(multiprocessing.Process):
             tilt_angle += tilt_direction * ANGLE_INC/4.      
             tilt_index += tilt_direction       
             
-            #vec, [pan_deg, tilt_deg, distance])
-            #for d in self.all_data[-1]:
-                #print d
-            
-            print data_count
-            if (data_count > 60):
-                f = open(WRITE_PATH + 'data.csv','w')
-                wr = csv.writer(f, delimiter=",")
-                wr.writerows(self.all_data)
-                return
-           
-if __name__ == '__main__':            
-    l = LidarSystem()
-    l.start()
-    
-    #time.sleep(60)
-    
-    l.join()
-    
-    #print "Unpickling"
-    #import pickle
-    #data_in = open(WRITE_PATH + 'data.out')
-    #data = pickle.load(data_in)
-    #print data
-    #i = 0
-    #for d in data:
-    	    #np.savetxt(WRITE_PATH + 'data' + str(i) + '.csv',np.asarray(d),'%3.2f',',')
-    #	    i += 1
+            # If we have exceeded the period, push our data to the queue        
+            if (time.time() - timer > self.period):
+                print "Pushing to Queue"
+                self.queue.put(self.all_data)
+                timer = time.time()
+
