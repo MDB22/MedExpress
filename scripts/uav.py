@@ -12,10 +12,11 @@ from multiprocessing.managers import BaseManager
 #from pymavlink import mavutil
 
 # First get an instance of the API endpoint
+# todo reenable
 #api = local_connect()
 # Get the connected vehicle (currently only one vehicle can be returned).
 #vehicle = api.get_vehicles()[0]
-vehicle = "test"
+api = "test"
 
 # Create shared queues and pipes
 log_q = multiprocessing.Queue()
@@ -44,9 +45,10 @@ uav_state_updater = UavStateUpdater(uav_state, vehicle, log_q)
 world_state_updater = WorldStateUpdater(world_state, log_q)
 interface = Interface(flight_command, log_q)
 logging = Logging(log_q)
-autopilot = Autopilot(vehicle, vehicle_command, log_q)
+autopilot = Autopilot(api, vehicle_command, log_q)
 flight = Flight(uav_state, world_state, flight_command, vehicle_command, log_q)
 
+# TODO uncaught error / exception from on of these process should initiate emergency mode
 # Start processes
 uav_state_updater.start()
 world_state_updater.start()
