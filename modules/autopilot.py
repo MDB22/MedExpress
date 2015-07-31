@@ -7,28 +7,31 @@ from uav_logging import Log
 class Autopilot():
     ARM_TIMEOUT = 20
     GPS_NO_FIX = [0,1] # 0,1 = No fix, 2 = 2D fix, 3 = 3D fix
+    LOC_ACCURACY = 0.95
 
     def __init__(self, api, vehicle_command, log_q):
         self.api = api
         self.vehicle = api.get_vehicles()[0]
-        self.vehicle_command = vehicle_command
+        self.vc_send, self.vc_recv, self.vc_send_lock, self.vc_recv_lock = vehicle_command
         self.log_q = log_q
-        self.armed = False #TODO remove and use vehicle.armed => not working with sitl?
 
     def takeoff(self, altitude):
         """ fly to altitude
         :param altitude: int (in meters)
-        :return:
+        :return: boolean (reached altitude)
         """
-        print self.vehicle.armed
         if not self.vehicle.armed:
             # TODO wrap in try
             self.arm()
 
         self.vehicle.commands.takeoff(altitude)
         self.vehicle.flush()
-        while True:
+        # todo should catch connection lost as exception
+        while not self.api.exit:
             print " Altitude: ", self.vehicle.location.alt
+            # if close to set point return
+            if self.vehicle.location.alt>=altitude*self.LOC_ACCURACY:
+                return True
             time.sleep(1)
 
     def arm(self):
@@ -49,8 +52,7 @@ class Autopilot():
         self.vehicle.mode = VehicleMode("GUIDED")
         self.vehicle.armed = True
         self.vehicle.flush()
-        self.armed = True # TODO remove
-        # Check that arming has completed # todo reenable on uav
+        # Check that arming has completed
         while not self.vehicle.armed and not self.api.exit:
             print " Waiting for arming..." # TODO msg over log
             time.sleep(1)
@@ -63,8 +65,9 @@ class Autopilot():
         self.vehicle.flush()
         # set to stabilize for manual control
         self.vehicle.mode = VehicleMode("STABILIZE")
-        self.armed = False # TODO remove
 
     def start(self):
         while True:
+            # replace with reading commands off the vechicle command pipe
             self.takeoff(20)
+            time.sleep(60)
