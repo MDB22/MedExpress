@@ -12,10 +12,11 @@ def linearMap(value, in_low, in_high, out_low, out_high):
         
 class ServoControl:
     
-    def __init__(self, id, name, limits):
+    def __init__(self, id, name, limits, pipe):
         self.id = id
         self.name = name
         self.min_angle, self.max_angle, self.min_width, self.max_width = limits
+        self.pipe = pipe
         
     def printLimits(self):
         print self.name + ' servo limits are:'
@@ -25,19 +26,19 @@ class ServoControl:
         print 'Max width - ' + str(self.max_width)
         
     # Sets the angle of the servo
-    def setAngle(self, pipe, angle):
+    def setAngle(self, angle):
         
         pulseWidth = linearMap(angle, self.min_angle, self.max_angle, 
             self.min_width, self.max_width)
         
-        self.setPosition(pipe, pulseWidth)
+        self.setPosition(pulseWidth)
                 
     # Sets the PWM output to the given pulse width for the servo
-    def setPosition(self, pipe, width):
+    def setPosition(self, width):
         # Throw exception if angle is not valid
         if (width < self.min_width or width > self.max_width):
             # IOError is the exception thrown by ServoBlaster
             raise IOError("Cannot set value " + str(width))
         
-        pipe.write(str(self.id) + '=' + str(width) + 'us\n')
-        pipe.flush()
+        self.pipe.write(str(self.id) + '=' + str(width) + 'us\n')
+        self.pipe.flush()
