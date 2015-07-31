@@ -1,6 +1,6 @@
 import multiprocessing
 import time
-from logging import Log
+from uav_logging import Log
 
 class Interface(multiprocessing.Process):
     def __init__(self, flight_command, log_q):
@@ -10,9 +10,10 @@ class Interface(multiprocessing.Process):
 
     def run(self):
         while True:
-            self.log_q.put("test interface")
-            with self.fc_send_lock:
-                self.fc_send.send("interface flight com")
-            with self.fc_recv_lock:
-                print self.fc_recv.recv()
-            time.sleep(2)
+            # self.log_q.put("test interface")
+            # with self.fc_send_lock:
+            #     self.fc_send.send("interface flight com")
+            # with self.fc_recv_lock:
+            #     print self.fc_recv.recv()
+            # time.sleep(2)
+            pass

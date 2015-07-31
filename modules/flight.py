@@ -1,6 +1,6 @@
 import multiprocessing
 import time
-from logging import Log
+from uav_logging import Log
 
 class Flight(multiprocessing.Process):
     def __init__(self, uav_state, world_state, flight_command, vehicle_command, log_q):
@@ -12,11 +12,12 @@ class Flight(multiprocessing.Process):
 
     def run(self):
         while True:
-            self.log_q.put("test flight")
-            with self.fc_recv_lock:
-                print self.fc_recv.recv()
-            with self.fc_send_lock:
-                self.fc_send.send("flight interface answer")
-            print self.uav_state.getTest()
-            print self.world_state.getTest()
-            time.sleep(2)
+            # self.log_q.put("test flight")
+            # with self.fc_recv_lock:
+            #     print self.fc_recv.recv()
+            # with self.fc_send_lock:
+            #     self.fc_send.send("flight interface answer")
+            # print self.uav_state.getTest()
+            # print self.world_state.getTest()
+            # time.sleep(2)
+            pass

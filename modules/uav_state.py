@@ -1,16 +1,17 @@
 import multiprocessing
 import time
-from logging import Log
+from uav_logging import Log
 
 class UavStateUpdater(multiprocessing.Process):
-    def __init__(self, uav_state, vehicle, log_q):
+    def __init__(self, uav_state, vehicle_command, log_q):
         super(UavStateUpdater, self).__init__()
         self.uav_state = uav_state
+        self.vehicle_command = vehicle_command
         self.log_q = log_q
 
     def run(self):
         while True:
-            self.uav_state.setTest(self.uav_state.getTest() + "1")
+            #self.uav_state.setTest(self.uav_state.getTest() + "1")
             time.sleep(3)
 
 class UavState():
