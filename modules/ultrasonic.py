@@ -2,6 +2,7 @@
 
 import RPi.GPIO as GPIO
 import time
+from numpy import array
 
 # Pin associated with "triggering" the sensor
 TRIG = 27
@@ -14,6 +15,10 @@ WAIT_TIME = 0.5
 ERROR = -1
 # Big number, which indicates distance measurement has failed
 FAILURE = 1.e8
+
+# Offsets (cm) for converting to UAV frame
+OFFSET_X = 2.
+OFFSET_Z = 10.
 
 class Ultrasonic:
     
@@ -33,6 +38,11 @@ class Ultrasonic:
 
     def __del__(self):
         GPIO.cleanup()
+
+    def toUAVFrame(self, distance):
+        # TODO: Need to make sure units match
+        # TODO: Need to verify actual offsets
+        return array([OFFSET_X, 0, distance + OFFSET_Z])
         
     def sendPulse(self):
     	try:
@@ -40,8 +50,7 @@ class Ultrasonic:
             GPIO.output(TRIG, True)
             # Send pulse for 10us
             time.sleep(0.00001)
-            GPIO.output(TRIG, False)
-            
+            GPIO.output(TRIG, False)            
             
             pulse_start = 0
             pulse_end = 0
@@ -70,10 +79,10 @@ class Ultrasonic:
             GPIO.cleanup()
             print "Create new object to use ultrasound"    
         
-    def getRange(self):
+    def getDistance(self):
     	pulse_width = ERROR
     	
         while pulse_width < 0 or pulse_width > FAILURE:
         	pulse_width = self.sendPulse()
-        	
-        return round(pulse_width*17150,2)
+
+        return self.toUAVFrame(round(pulse_width*17150,2))

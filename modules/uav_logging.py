@@ -38,7 +38,7 @@ class Logging(multiprocessing.Process):
     """ Module to distribute logging from the uav modules
 
     Logs will be writen to the registered queues depending on which types
-    they which to observe
+    they wish to observe
     """
     def __init__(self, log_q, outputs):
         """
