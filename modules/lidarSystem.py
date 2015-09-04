@@ -93,7 +93,6 @@ class LidarSystem(multiprocessing.Process):
         
         # 2D array for scans, initialised to NaN
         self.data = np.zeros((NUM_POINTS_PER_TILT, NUM_POINTS_PER_PAN), dtype=float)*np.NaN
-        self.all_data = []
         
         # Store the queue object to make data available for other processes
         self.queue = queue
@@ -178,6 +177,9 @@ class LidarSystem(multiprocessing.Process):
         pan_angle= MIN_ANGLE_PAN
         tilt_angle = MIN_ANGLE_TILT
         
+        # Stores the points for pushing to the queue
+        data = []
+        
         while True:
             
             # Update servos
@@ -185,14 +187,12 @@ class LidarSystem(multiprocessing.Process):
             self.tilt.setAngle(tilt_angle)
             
             # Get data and transform it to the UAV coordinate frame
-            self.all_data.append(self.toUAVFrame(
+            data.append(self.toUAVFrame(
                 pan_angle, tilt_angle, self.lidar.getRange()))
-            time.sleep(0.1)
             
             # If tilt exceeds limit, reverse direction
             if tilt_angle <= MIN_ANGLE_TILT or tilt_angle >= MAX_ANGLE_TILT:
                 tilt_direction *= -1
-                data_count += 1
               
             # If pan exceeds limit, reverse direction
             if pan_angle <= MIN_ANGLE_PAN or pan_angle >= MAX_ANGLE_PAN:
@@ -211,7 +211,6 @@ class LidarSystem(multiprocessing.Process):
                 # Push data to Queue
                 self.queue.put(self.all_data)
                 # Reset data storage
-                self.all_data = []
+                data = []
                 # Reset timer
                 start = time.time()
-
