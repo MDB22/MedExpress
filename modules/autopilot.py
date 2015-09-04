@@ -12,7 +12,7 @@ class Autopilot():
     def __init__(self, api, vehicle_command, log_q):
         self.api = api
         self.vehicle = api.get_vehicles()[0]
-        self.vc_send, self.vc_recv, self.vc_send_lock, self.vc_recv_lock = vehicle_command
+        self.vc_send, self.vc_recv, self.vc_lock = vehicle_command
         self.log_q = log_q
         self.module_name = self.__class__.__name__
 
@@ -74,11 +74,12 @@ class Autopilot():
     def start(self):
         while True:
             # read and execute commands off vehicle_command pipe
-            with self.vc_recv_lock:
+            with self.vc_lock:
                 command = self.vc_recv.recv().split()
                 # todo exception on failed calls
                 # command syntax: method param1 param2 ...
                 response = getattr(self, command[0])(*command[1:])
+                #todo change
                 with self.vc_send_lock:
                     self.vc_send.send(response)
             sleep(1)

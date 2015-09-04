@@ -6,7 +6,7 @@ class UavStateUpdater(multiprocessing.Process):
     def __init__(self, uav_state, vehicle_command, log_q):
         super(UavStateUpdater, self).__init__()
         self.uav_state = uav_state
-        self.vc_send, self.vc_recv, self.vc_send_lock, self.vc_recv_lock = vehicle_command
+        self.vc_send, self.vc_recv, self.vc_lock = vehicle_command
         self.log_q = log_q
         self.module_name = self.__class__.__name__
 

@@ -5,7 +5,7 @@ from uav_logging import *
 class Interface(multiprocessing.Process):
     def __init__(self, flight_command, log_q, ilog_q):
         super(Interface, self).__init__()
-        self.fc_send, self.fc_recv, self.fc_send_lock, self.fc_recv_lock = flight_command
+        self.fc_send, self.fc_recv, self.fc_lock = flight_command
         self.log_q = log_q
         self.ilog_q = ilog_q
         self.module_name = self.__class__.__name__
