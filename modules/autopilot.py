@@ -1,7 +1,7 @@
 import multiprocessing
 from droneapi.lib import VehicleMode, Location
 from pymavlink import mavutil
-import time
+from time import sleep
 from uav_logging import *
 
 class Autopilot():
@@ -21,6 +21,8 @@ class Autopilot():
         :param altitude: int (in meters)
         :return: boolean (reached altitude)
         """
+        # convert command string
+        altitude = float(altitude)
         if not self.vehicle.armed:
             # TODO wrap in try
             self.arm()
@@ -34,6 +36,8 @@ class Autopilot():
             if self.vehicle.location.alt>=altitude*self.LOC_ACCURACY:
                 return True
             time.sleep(1)
+        # TODO proper return check
+        return "SUCCESS"
 
     def arm(self):
         """ Arm the uav
@@ -69,6 +73,12 @@ class Autopilot():
 
     def start(self):
         while True:
-            # replace with reading commands off the vechicle command pipe
-            self.takeoff(20)
-            time.sleep(60)
+            # read and execute commands off vehicle_command pipe
+            with self.vc_recv_lock:
+                command = self.vc_recv.recv().split()
+                # todo exception on failed calls
+                # command syntax: method param1 param2 ...
+                response = getattr(self, command[0])(*command[1:])
+                with self.vc_send_lock:
+                    self.vc_send.send(response)
+            sleep(1)
