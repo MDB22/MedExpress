@@ -187,8 +187,9 @@ class LidarSystem(multiprocessing.Process):
             self.tilt.setAngle(tilt_angle)
             
             # Get data and transform it to the UAV coordinate frame
-            data.append(self.toUAVFrame(
-                pan_angle, tilt_angle, self.lidar.getRange()))
+            d = self.toUAVFrame(pan_angle, tilt_angle, self.lidar.getRange())
+            #print(d)
+            data.append(d)
             
             # If tilt exceeds limit, reverse direction
             if tilt_angle <= MIN_ANGLE_TILT or tilt_angle >= MAX_ANGLE_TILT:
@@ -209,7 +210,7 @@ class LidarSystem(multiprocessing.Process):
             if (current - start > self.period):
                 print "Pushing to Queue"
                 # Push data to Queue
-                self.queue.put(self.all_data)
+                self.queue.put(data)
                 # Reset data storage
                 data = []
                 # Reset timer

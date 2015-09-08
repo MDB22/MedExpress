@@ -21,8 +21,14 @@ sudo apt-get -y build-dep python-serial python-pyparsing python-numpy
 
 sudo apt-get -y install python-wxgtk2.8
 
-pip install numpy pyparsing pyserial python-smbus smbus-cffi cffi
+pip install numpy pyparsing pyserial
+pip install cffi smbus-cffi
 pip install droneapi
+
+echo "** Plotly **"
+# Need to update the username and API key values with real data
+pip install plotly
+python -c "import plotly; plotly.tools.set_credentials_file(username='DemoAccount', api_key='lr1c37zw81')"
 
 echo "** Install Pi stuff **"
 pip install RPi.GPIO
