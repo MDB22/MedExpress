@@ -1,18 +1,16 @@
-function new_data = getLidarData(file, dims)
-%GETLIDARDATA Summary of this function goes here
-%   Detailed explanation goes here
+function data = getLidarData(socket)
+%GETLIDARDATA Reads LiDAR data passed from the Raspberry Pi via TCP/IP
 
-    data = csvread(file)';
+% First piece of data is number of points
+n = fscanf(socket,'%u', 1)
 
-    num_elements = size(data,2);
-    
-    new_data = [];
+% Generate data matrix
+data = zeros(n, 3);
 
-    for i=1:num_elements
-        % Only keep realistic data
-        if(inRange(data(:,i), dims))
-            new_data = [new_data data(:,i)];
-        end
-    end
-
+for i=1:n
+    s = scanstr(socket);
+    data(i,:) = sscanf(s{1},'[ %f %f %f]');
+    i
 end
+
+data
