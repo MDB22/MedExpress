@@ -1,6 +1,6 @@
 from lidarSystem import LidarSystem
 
-l = LidarSystem(4, None)
+l = LidarSystem(2, None)
 
 l.run()
 
