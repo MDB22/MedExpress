@@ -4,8 +4,8 @@ import test
 
 q = multiprocessing.Queue()
     
-l = lidarSystem.LidarSystem(2, q)
-t = test.Test(3, q)
+l = lidarSystem.LidarSystem(1, q)
+t = test.Test(2, q)
     
 l.start()
 t.start()

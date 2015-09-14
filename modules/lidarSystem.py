@@ -2,9 +2,9 @@
 # made up of two servos (pan and tilt) and LiDAR sensor
 
 import os
-import csv
 import math
 import time
+import socket
 import pickle
 import multiprocessing
 import numpy as np
@@ -12,6 +12,7 @@ import numpy as np
 from numpy import sin, cos
 from servoControl import * 
 from lidar import *
+from cPickle import dumps
 
 # Path to ServoBlaster process, need to make generic to each user
 PIPE_PATH = '/home/' + os.getlogin() + '/ServoBlaster/'
@@ -96,15 +97,31 @@ class LidarSystem(multiprocessing.Process):
         
         # Store the queue object to make data available for other processes
         self.queue = queue
+
+        # Create socket for communicating with MATLAB
+        self.socket = self.openSocket()
         
     def __del__(self):  
         self.cleanup()
         
-    def cleanup(self):        
+    def cleanup(self):
+        self.socket.close()
         # Kill the servo process during cleanup so servos don't lock
         import os
         print "Killing servo process"
-        os.system('sudo killall servod -q')   
+        os.system('sudo killall servod -q')
+
+    def openSocket(self):
+        HOST = ''       # Symbolic name meaning all available interfaces
+        PORT = 50010    # Arbitrary non-privileged port
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        s.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        s.bind((HOST, PORT))
+        s.listen(1)
+        conn, addr = s.accept()
+        print 'Connected by', addr
+        
+        return conn
 
     # Converts a LiDAR distance measurement to a vector in the UAV frame 
     def toUAVFrame(self, pan_deg, tilt_deg, distance):
@@ -162,6 +179,21 @@ class LidarSystem(multiprocessing.Process):
         
         print "Length is" + str(len(data))
         return data
+
+    def writeToSocket(self, data):
+        # Tell MATLAB how many elements to expect
+        #n = len(data)
+        n = 4000
+        print(str(n))
+        self.socket.sendall(str(n) + ']')
+
+        i = 0
+
+        # Send each array individually
+        for d in data:
+            if (i < n):
+                self.socket.sendall(str(d))
+                i += 1
         
     # Run method for Process, performs in-flight, low-res scan
     def run(self):
@@ -187,8 +219,9 @@ class LidarSystem(multiprocessing.Process):
             self.tilt.setAngle(tilt_angle)
             
             # Get data and transform it to the UAV coordinate frame
-            d = self.toUAVFrame(pan_angle, tilt_angle, self.lidar.getRange())
-            #print(d)
+            #d = self.toUAVFrame(pan_angle, tilt_angle, self.lidar.getRange())
+            d = np.array([1., 2., 3.])
+            
             data.append(d)
             
             # If tilt exceeds limit, reverse direction
@@ -210,8 +243,13 @@ class LidarSystem(multiprocessing.Process):
             if (current - start > self.period):
                 print "Pushing to Queue"
                 # Push data to Queue
-                self.queue.put(data)
+                #self.queue.put(dumps(data))
+
+                # Write to the socket communicating with MATLAB
+                self.writeToSocket(data)
+                
                 # Reset data storage
                 data = []
                 # Reset timer
                 start = time.time()
+                return
