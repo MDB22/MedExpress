@@ -1,6 +1,10 @@
 close all;
 clc;
 
+socket = tcpip('192.168.0.139', 50010, 'NetworkRole', 'client',...
+    'Timeout', 5, 'Terminator', ']');
+fopen(socket);
+
 % World dimensions (cm)
 xdim = [0 500];
 ydim = [-500 500];
@@ -38,7 +42,8 @@ count = 0;
 while (count < 1)
     % Update our position data
     %new_data = getRandomData();
-    new_data = getLidarData('data_2.csv', world_dim);
+    %new_data = getLidarDataFromFile('data.csv', world_dim);
+    new_data = getLidarData(socket);
     
     % Convert from coordinates to cells
     cells = posToCell(new_data, world_dim, voxelize_resolution);
@@ -54,3 +59,5 @@ while (count < 1)
     
     count = count + 1;
 end
+
+fclose(socket);
