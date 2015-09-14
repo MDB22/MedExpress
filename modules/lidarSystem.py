@@ -183,20 +183,16 @@ class LidarSystem(multiprocessing.Process):
     def writeToSocket(self, data):
         # Tell MATLAB how many elements to expect
         #n = len(data)
-        n = 4000
-        print(str(n))
-        self.socket.sendall(str(n) + ']')
-
-        i = 0
+        #print(str(n))
+        #self.socket.sendall(str(n) + ']')
 
         # Send each array individually
-        for d in data:
-            if (i < n):
-                self.socket.sendall(str(d))
-                i += 1
+        self.socket.sendall(str(data))
+        #for d in data:
+            #self.socket.sendall(str(d))
         
     # Run method for Process, performs in-flight, low-res scan
-    def run(self):
+    def run(self):        
     	# Timer for updating UAV parameters
     	start = time.time()
     	current = start
@@ -219,10 +215,10 @@ class LidarSystem(multiprocessing.Process):
             self.tilt.setAngle(tilt_angle)
             
             # Get data and transform it to the UAV coordinate frame
-            #d = self.toUAVFrame(pan_angle, tilt_angle, self.lidar.getRange())
-            d = np.array([1., 2., 3.])
+            d = self.toUAVFrame(pan_angle, tilt_angle, self.lidar.getRange())
             
-            data.append(d)
+            #data.append(d)
+            self.writeToSocket(d)
             
             # If tilt exceeds limit, reverse direction
             if tilt_angle <= MIN_ANGLE_TILT or tilt_angle >= MAX_ANGLE_TILT:
@@ -241,15 +237,14 @@ class LidarSystem(multiprocessing.Process):
             
             # If we have exceeded the period, push our data to the queue        
             if (current - start > self.period):
-                print "Pushing to Queue"
+                #print "Pushing to Queue"
                 # Push data to Queue
                 #self.queue.put(dumps(data))
 
                 # Write to the socket communicating with MATLAB
-                self.writeToSocket(data)
+                #self.writeToSocket(data)
                 
                 # Reset data storage
                 data = []
                 # Reset timer
                 start = time.time()
-                return
