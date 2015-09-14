@@ -41,6 +41,7 @@ echo "** Profile setup **"
 echo "source ~/med_express_uav/python_env/bin/activate" >> ~/.profile
 echo "cd ~/med_express_uav" >> ~/.profile
 echo "export PYTHONPATH=~/med_express_uav/modules" >> ~/.profile
+echo "export PYTHONPATH=$PYTHONPATH:~/med_express_uav/tests" >> ~/.profile
 
 echo "** install general python libs **"
 pip install enum34
