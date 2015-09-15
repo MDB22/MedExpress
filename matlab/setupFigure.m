@@ -8,6 +8,7 @@ grid on;
 xlabel('X');
 ylabel('Y');
 zlabel('Z');
+title('Real-time LiDAR Data');
 
 if strcmp(drawAxes, 'on')   
     quiver3(0, 0, 0, 100, 0, 0, 'color', 'r');

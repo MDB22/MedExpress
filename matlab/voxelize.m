@@ -1,12 +1,12 @@
 close all;
 clc;
 
-socket = tcpip('192.168.0.139', 50010, 'NetworkRole', 'client',...
+socket = tcpip('192.168.1.100', 50010, 'NetworkRole', 'client',...
     'Timeout', 5, 'Terminator', ']');
 fopen(socket);
 
 % World dimensions (cm)
-xdim = [0 500];
+xdim = [-50 500];
 ydim = [-500 500];
 zdim = [-100 500];
 world_dim = [xdim; ydim; zdim];
@@ -39,25 +39,33 @@ view(30,30);
 count = 0;
 
 % Repeat until count, and update grid/figure
-while (count < 1)
-    % Update our position data
-    %new_data = getRandomData();
-    %new_data = getLidarDataFromFile('data.csv', world_dim);
-    new_data = getLidarData(socket);
-    
-    % Convert from coordinates to cells
-    cells = posToCell(new_data, world_dim, voxelize_resolution);
-    
-    % Fill occupancy grid
-    occupancy_grid = fillGrid(occupancy_grid, cells);
+while (count < 2000)
+    try
+        % Update our position data
+        %new_data = getRandomData();
+        %new_data = getLidarDataFromFile('data.csv', world_dim);
+        new_data = getLidarData(socket, world_dim);
 
-    % Render the occupancy grid
-    updateGrid(cells, world_dim, voxelize_resolution);
-    
-    % Save figure to jpeg
-    hgexport(gcf, ['Figures/voxelize',num2str(count),'.png'], hgexport('factorystyle'), 'Format', 'jpeg');
-    
-    count = count + 1;
+        % Convert from coordinates to cells
+        cells = posToCell(new_data, world_dim, voxelize_resolution);
+
+        % Fill occupancy grid
+        occupancy_grid = fillGrid(occupancy_grid, cells);
+
+        % Render the occupancy grid
+        updateGrid(cells, world_dim, voxelize_resolution);
+
+        count = count + 1;
+
+        drawnow;
+        %pause(0.05);
+    catch
+        disp('Out of data, waiting for more');
+        pause(3);
+    end
 end
+    
+% Save figure to jpeg
+hgexport(gcf, ['Figures/voxelize',num2str(count),'.png'], hgexport('factorystyle'), 'Format', 'jpeg');
 
 fclose(socket);
