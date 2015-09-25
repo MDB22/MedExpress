@@ -36,10 +36,14 @@ alpha('color');
 %alphamap('rampdown');
 view(30,30);
 
+% Timers
+t1 = clock;
+t2 = clock;
+
 count = 0;
 
-% Repeat until count, and update grid/figure
-while (count < 2000)
+% Repeat for given amount of time
+while (etime(t2, t1) < 60)
     try
         % Update our position data
         %new_data = getRandomData();
@@ -57,12 +61,14 @@ while (count < 2000)
 
         count = count + 1;
 
-        drawnow;
-        %pause(0.05);
+        drawnow;        
+            
     catch
         disp('Out of data, waiting for more');
         pause(3);
     end
+    
+    t2 = clock;
 end
     
 % Save figure to jpeg
