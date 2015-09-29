@@ -20,9 +20,9 @@ class UavState():
         self.test = "test uav state"
         self.module_name = self.__class__.__name__
 
-    #TODO set up attibutes / properties
+    # TODO set up attibutes / properties
     def getTest(self):
         return self.test
-    #TODO Locking on writes
+    # TODO Locking on writes
     def setTest(self, test):
         self.test = test

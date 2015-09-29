@@ -2,6 +2,7 @@ import multiprocessing
 import time
 from uav_logging import *
 
+# TODO Unfinished class
 class WorldStateUpdater(multiprocessing.Process):
     def __init__(self, world_state, log_q):
         super(WorldStateUpdater, self).__init__()
