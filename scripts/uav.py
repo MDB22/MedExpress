@@ -43,7 +43,7 @@ world_state = state_manager.WorldState()
 # Create objects for process modules
 uav_state_updater = UavStateUpdater(uav_state, vehicle_command, log_q)
 world_state_updater = WorldStateUpdater(world_state, log_q)
-interface = Interface(flight_command, log_q, ilog_q)
+interface = BaseCommunications(flight_command, log_q, ilog_q)
 logging = Logging(log_q, (log_file, file_log_types, ilog_q, interface_log_types))
 flight = Flight(uav_state, world_state, flight_command, vehicle_command, log_q)
 

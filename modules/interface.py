@@ -2,7 +2,7 @@ import multiprocessing
 import time
 from uav_logging import *
 
-class Interface(multiprocessing.Process):
+class BaseCommunications(multiprocessing.Process):
     def __init__(self, flight_command, log_q, ilog_q):
         super(Interface, self).__init__()
         self.fc_send, self.fc_recv, self.fc_lock = flight_command
