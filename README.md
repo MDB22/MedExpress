@@ -2,13 +2,8 @@
 Code for communication and control of the UAV for the 2016 Outback Challenge - Medical Express
 
 ## Environment install
-Run to set up the python virtual environment and required modules
+To set up the python virtual environment and required modules, download "virual_env_install.sh" to the Raspberry Pi, and run
 
 ./virtual_env_install.sh 
 
-## Running
-Before running scripts load the virtual environment and set PYTHONPATH
-
-source python_env/bin/activate
-export PYTHONPATH=~/med_express_uav/modules
-
+The Raspberry Pi will now be configured to load a Python virtual environment upon logging in, making for easy file and environment management.
