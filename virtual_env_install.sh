@@ -23,13 +23,10 @@ echo "** Adding core programs **"
 sudo apt-get -y install python-pip python-virtualenv
 sudo rm -rf ~/.cache/pip
 
+# Download project files from git
 echo "** Creating directory structure **"
-mkdir $PROJECT
+git clone https://github.com/MDB22/MedExpress
 cd $PROJECT
-
-mkdir "tests"
-mkdir "scripts"
-mkdir "modules"
 
 echo "** Create virtual env **"
 virtualenv -p /usr/bin/python2.7 $PYTHON
@@ -52,7 +49,3 @@ echo "source ~/$PROJECT/pyEnv/bin/activate" >> ~/.profile
 echo "cd ~/$PROJECT" >> ~/.profile
 echo "export PYTHONPATH=~/$PROJECT/modules" >> ~/.profile
 echo "export PYTHONPATH=$PYTHONPATH:~/$PROJECT/tests" >> ~/.profile
-
-# Download project files from git
-cd ~
-git clone https://github.com/MDB22/MedExpress
