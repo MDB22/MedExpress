@@ -6,11 +6,10 @@ exec &> >(tee $LOG)
 
 # Create useful variables
 PYTHON="pyEnv"
-REPO_DIR="~/MedExpress"
-PROJECT="outback_challenge"
+PROJECT="~/MedExpress"
 
 # Return to root of user directory, remove previous environment setup
-cd $REPO_DIR
+cd ~
 rm -rfv $PROJECT
 
 # Update Pi and package list
@@ -23,9 +22,6 @@ sudo rpi-update
 echo "** Adding core programs **"
 sudo apt-get -y install python-pip python-virtualenv
 sudo rm -rf ~/.cache/pip
-
-echo "** Building / Rebuilding python virtual env **"
-rm -rf $PYTHON
 
 echo "** Creating directory structure **"
 mkdir $PROJECT
@@ -51,7 +47,7 @@ pip install enum34
 sudo usermod -a -G dialout,kmem $USER
 
 echo "** Profile setup **"
-echo "source $REPO_DIR/$PROJECT/python_env/bin/activate" >> ~/.profile
+echo "source $PROJECT/python_env/bin/activate" >> ~/.profile
 echo "cd $PROJECT" >> ~/.profile
-echo "export PYTHONPATH=$REPO_DIR/$PROJECT/modules" >> ~/.profile
-echo "export PYTHONPATH=$PYTHONPATH:$REPO_DIR/$PROJECT/tests" >> ~/.profile
+echo "export PYTHONPATH=$PROJECT/modules" >> ~/.profile
+echo "export PYTHONPATH=$PYTHONPATH:$PROJECT/tests" >> ~/.profile
