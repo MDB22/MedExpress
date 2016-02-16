@@ -6,7 +6,7 @@ exec &> >(tee $LOG)
 
 # Create useful variables
 PYTHON="pyEnv"
-PROJECT="~/MedExpress"
+PROJECT="MedExpress"
 
 # Return to root of user directory, remove previous environment setup
 cd ~
@@ -37,6 +37,7 @@ source $PYTHON/bin/activate
 
 echo "** Dronekit for UAV development **"
 pip install numpy pyparsing pyserial
+pip install mavproxy
 pip install dronekit
 
 echo "** Install Pi & Python stuff **"
@@ -47,7 +48,11 @@ pip install enum34
 sudo usermod -a -G dialout,kmem $USER
 
 echo "** Profile setup **"
-echo "source $PROJECT/python_env/bin/activate" >> ~/.profile
-echo "cd $PROJECT" >> ~/.profile
-echo "export PYTHONPATH=$PROJECT/modules" >> ~/.profile
-echo "export PYTHONPATH=$PYTHONPATH:$PROJECT/tests" >> ~/.profile
+echo "source ~/$PROJECT/pyEnv/bin/activate" >> ~/.profile
+echo "cd ~/$PROJECT" >> ~/.profile
+echo "export PYTHONPATH=~/$PROJECT/modules" >> ~/.profile
+echo "export PYTHONPATH=$PYTHONPATH:~/$PROJECT/tests" >> ~/.profile
+
+# Download project files from git
+cd ~
+git clone https://github.com/MDB22/MedExpress
