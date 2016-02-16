@@ -25,11 +25,6 @@ pip install numpy pyparsing pyserial
 pip install cffi smbus-cffi
 pip install droneapi
 
-echo "** Plotly **"
-# Need to update the username and API key values with real data
-pip install plotly
-python -c "import plotly; plotly.tools.set_credentials_file(username='DemoAccount', api_key='lr1c37zw81')"
-
 echo "** Install Pi stuff **"
 pip install RPi.GPIO
 
@@ -38,10 +33,10 @@ sudo usermod -a -G dialout,kmem $USER
 cd $PROJECT
 
 echo "** Profile setup **"
-echo "source ~/med_express_uav/python_env/bin/activate" >> ~/.profile
-echo "cd ~/med_express_uav" >> ~/.profile
-echo "export PYTHONPATH=~/med_express_uav/modules" >> ~/.profile
-echo "export PYTHONPATH=$PYTHONPATH:~/med_express_uav/tests" >> ~/.profile
+echo "source $PROJECT/python_env/bin/activate" >> ~/.profile
+echo "cd $PROJECT" >> ~/.profile
+echo "export PYTHONPATH=$PROJECT/modules" >> ~/.profile
+echo "export PYTHONPATH=$PYTHONPATH:$PROJECT/tests" >> ~/.profile
 
 echo "** install general python libs **"
 pip install enum34
