@@ -1,8 +1,16 @@
 import multiprocessing
-from droneapi.lib import VehicleMode, Location
+from dronekit.lib import VehicleMode, Location
 from pymavlink import mavutil
 from time import sleep
 from uav_logging import *
+
+###
+# Use droneapi Callbacks to monitor vehicle state
+# Use on_message('COMMAND_ACK') and on_message('STATUSTEXT') to monitor MAVLink messages
+# Use the system_status attribute to monitor vehicle status using Drone Kit
+# Use MAV_CMD_DO_FLIGHTTERMINATION for emeergency stop
+# Use param set SIM_GPS_DISABLE 1 in MAVProxy to test GPS failure
+###
 
 class Autopilot():
     ARM_TIMEOUT = 20
