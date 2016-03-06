@@ -8,7 +8,7 @@ import multiprocessing
 from multiprocessing.managers import BaseManager
 
 # get the droneapi mavproxy connection
-api = local_connect()
+#api = local_connect()
 #vehicle = api.get_vehicles()[0]
 
 # Logging setup todo define log types
