@@ -1,8 +1,12 @@
 import multiprocessing
-from dronekit.lib import VehicleMode, Location
-from pymavlink import mavutil
-from time import sleep
-from uav_logging import *
+import dronekit
+import socket
+import time
+
+#from dronekit.lib import VehicleMode, Location
+#from pymavlink import mavutil
+#from time import sleep
+#from uav_logging import *
 
 ###
 # Use droneapi Callbacks to monitor vehicle state
@@ -17,13 +21,32 @@ class Autopilot():
     GPS_NO_FIX = [0,1] # 0,1 = No fix, 2 = 2D fix, 3 = 3D fix
     LOC_ACCURACY = 0.95
 
-    def __init__(self, api, vehicle_command, log_q):
-        self.api = api
-        self.vehicle = api.get_vehicles()[0]
+    def __init__(self, ip, vehicle_command, log_q):        
+        self.vehicle = self.connectToVehicle(ip)
+        
         # Potentially incorrect ordering here, main passes tuple of (Pipe, Lock, Lock)
-        self.vc_send, self.vc_recv, self.vc_lock = vehicle_command
+        #self.vc_send, self.vc_recv, self.vc_lock = vehicle_command
         self.log_q = log_q
         self.module_name = self.__class__.__name__
+
+    def connectToVehicle(self, ip):
+        print("Connecting to " + ip)
+
+        # Connect to vehicle, be on the look out for failures
+        try:
+            vehicle = dronekit.connect(ip, heartbeat_timeout=15, wait_ready=True)
+            return vehicle
+        # Bad TCP connection
+        except socket.error:
+            print("No server exists!")
+        except dronekit.APIException:
+            print("Timeout!")
+        # Bad TTY connection
+        except exceptions.OSError as e:
+            print("No serial exists!")
+        # Other error
+        except:
+            print("Something else went wrong!")
 
     def takeoff(self, altitude):
         """ fly to altitude
@@ -81,7 +104,7 @@ class Autopilot():
         self.vehicle.mode = VehicleMode("STABILIZE")
 
     def start(self):
-        while True:
+        while False:
             # read and execute commands off vehicle_command pipe
             with self.vc_lock:
                 command = self.vc_recv.recv().split()
@@ -93,3 +116,6 @@ class Autopilot():
                 with self.vc_send_lock:
                     self.vc_send.send(response)
             sleep(1)
+
+        time.sleep(5)
+        self.vehicle.close()

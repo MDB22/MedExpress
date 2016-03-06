@@ -1,29 +1,21 @@
-import dronekit
-import socket
-import exceptions
+from autopilot import *
+from mission_reader import *
 
-# Get IP address of vehicle
-ip = raw_input("Enter IP address and port of desired vehicle: ")
+# IP address of vehicle
+ip = "tcp:127.0.0.1:5760"
 
-if ip == "":
-    ip = "tcp:127.0.0.1:5760"
+# Name of KMZ file
+filename = 'sample_mission.kmz'
 
-# Connect to the Vehicle
-print("Connecting to " + ip)
+# Process KMZ file
+kml = GenerateMission()
 
-try:
-    vehicle = dronekit.connect(ip, heartbeat_timeout=15, wait_ready=True)
-# Bad TCP connection
-except socket.error:
-    print("No server exists!")
-except dronekit.APIException:
-    print("Timeout!")
-# Bad TTY connection
-except exceptions.OSError as e:
-    print("No serial exists!")
-# Other error
-except:
-    print("Something else went wrong!")
+# Connect to the autopilot
+pixhawk = Autopilot(ip, None, None)
 
-# About to exit script
-vehicle.close()
+# Activate the processes
+pixhawk.start()
+
+# About to exit script, make sure we cleanup
+
+print("Mission complete.")
