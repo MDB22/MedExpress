@@ -8,7 +8,7 @@ ip = "127.0.0.1:14551"
 filename = 'sample_mission.kmz'
 
 # Process KMZ file
-mission_info = GenerateMission(filename)
+kml = GenerateMission(filename)
 
 # Connect to the autopilot
 pixhawk = Autopilot(ip, mission_info, None, None)
