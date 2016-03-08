@@ -26,8 +26,6 @@ def GenerateMission(filename):
     items['landing_site_geofence'] = ParseCoordinates(generator.mapping, 'Sample remote landing site')
     items['mission_geofence'] = ParseCoordinates(generator.mapping, 'Sample full geofence')
     items['path'] = ParseCoordinates(generator.mapping, 'Sample Nominal Path')
-
-    print items['landing_site']
     
     return items
 
@@ -42,9 +40,9 @@ def ParseCoordinates(mapping, item):
     
     for c in coordinates:
         items = c.split(',')
-        location['lat'] = items[1]
-        location['long'] = items[0]
-        location['alt'] = items[2]
+        location['lat'] = float(items[1])
+        location['long'] = float(items[0])
+        location['alt'] = float(items[2])
         coords_list.append(location)
 
     return coords_list

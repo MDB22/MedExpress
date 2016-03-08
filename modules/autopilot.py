@@ -21,8 +21,10 @@ class Autopilot():
     GPS_NO_FIX = [0,1] # 0,1 = No fix, 2 = 2D fix, 3 = 3D fix
     LOC_ACCURACY = 0.95
 
-    def __init__(self, ip, vehicle_command, log_q):        
+    def __init__(self, ip, mission_info, vehicle_command, log_q):
+        
         self.vehicle = self.connectToVehicle(ip)
+        self.setHomeLocation(mission_info['base_location'][0])
         
         # Potentially incorrect ordering here, main passes tuple of (Pipe, Lock, Lock)
         #self.vc_send, self.vc_recv, self.vc_lock = vehicle_command
@@ -47,6 +49,20 @@ class Autopilot():
         # Other error
         except:
             print("Something else went wrong!")
+
+    def setHomeLocation(self, location):
+        cmds = self.vehicle.commands
+        cmds.download()
+        cmds.wait_ready()
+        print(self.vehicle.home_location)
+
+        # Set base location
+        self.vehicle.home_location = dronekit.LocationGlobal(location['lat'],\
+                                                             location['long'],\
+                                                             location['alt'])
+
+        print(location)
+        print(self.vehicle.home_location)
 
     def takeoff(self, altitude):
         """ fly to altitude
@@ -103,6 +119,13 @@ class Autopilot():
         # set to stabilize for manual control
         self.vehicle.mode = VehicleMode("STABILIZE")
 
+    # Commands the aircraft to switch between rotor and fixed-wing flight
+    def transition(self):
+        pass
+        # Send transition command to aircraft, somehow change flight configuration
+
+        # Set Geofence on transition
+
     def start(self):
         while False:
             # read and execute commands off vehicle_command pipe
@@ -117,5 +140,5 @@ class Autopilot():
                     self.vc_send.send(response)
             sleep(1)
 
-        time.sleep(5)
+        time.sleep(60)
         self.vehicle.close()
