@@ -22,14 +22,21 @@ def GenerateMission(filename):
     items = {}
     items['base_location'] = ParseCoordinates(generator.mapping, 'Base')
     items['landing_site'] = ParseCoordinates(generator.mapping, 'Fake reported location')
-    items['base_geofence'] = ParseCoordinates(generator.mapping, 'Base geofence')
-    items['landing_site_geofence'] = ParseCoordinates(generator.mapping, 'Sample remote landing site')
-    items['mission_geofence'] = ParseCoordinates(generator.mapping, 'Sample full geofence')
     items['path'] = ParseCoordinates(generator.mapping, 'Sample Nominal Path')
+    items['return_path']= items['path'].reverse()
+
+    items['base_geofence'] = GenerateGeofence(ParseCoordinates(generator.mapping, 'Base geofence'))
+    items['landing_site_geofence'] = GenerateGeofence(ParseCoordinates(generator.mapping, 'Sample remote landing site'))
+    items['mission_geofence'] = GenerateGeofence(ParseCoordinates(generator.mapping, 'Sample full geofence'))
     
     return items
 
-# Converts the stirng of coordinate positions to a list of tuples,
+# Converts the parsed points into Geofence polygons
+def GenerateGeofences(coords_list):
+    # Include process for creating "soft geofence"
+    return coords_list
+
+# Converts the string of coordinate positions to a list of tuples,
 # arranged as (lat, long, alt)
 def ParseCoordinates(mapping, item):
 
