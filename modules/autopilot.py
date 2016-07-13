@@ -22,9 +22,9 @@ class Autopilot():
     GPS_NO_FIX = [0,1] # 0,1 = No fix, 2 = 2D fix, 3 = 3D fix
     LOC_ACCURACY = 0.95
 
-    def __init__(self, device, mission_info, vehicle_command, log_q):
+    def __init__(self, device_address, mission_info, vehicle_command, log_q):
         
-        self.vehicle = self.connectToVehicle(device)
+        self.vehicle = self.connectToVehicle(device_address)
         self.setHomeLocation(mission_info['base_location'][0])
         
         # Potentially incorrect ordering here, main passes tuple of (Pipe, Lock, Lock)
@@ -32,12 +32,12 @@ class Autopilot():
         self.log_q = log_q
         self.module_name = self.__class__.__name__
 
-    def connectToVehicle(self, device):
-        print("Connecting to " + device)
+    def connectToVehicle(self, device_address):
+        print("Connecting to " + device_address)
 
         # Connect to vehicle, be on the look out for failures
         try:
-            vehicle = connect(device, heartbeat_timeout=15, wait_ready=True, baud=57600)
+            vehicle = connect(device_address, heartbeat_timeout=15, wait_ready=True, baud=57600)
             return vehicle
         # Bad TCP connection
         except socket.error:

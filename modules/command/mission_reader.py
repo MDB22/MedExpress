@@ -25,9 +25,9 @@ def GenerateMission(filename):
     items['path'] = ParseCoordinates(generator.mapping, 'Sample Nominal Path')
     items['return_path']= items['path'].reverse()
 
-    items['base_geofence'] = GenerateGeofence(ParseCoordinates(generator.mapping, 'Base geofence'))
-    items['landing_site_geofence'] = GenerateGeofence(ParseCoordinates(generator.mapping, 'Sample remote landing site'))
-    items['mission_geofence'] = GenerateGeofence(ParseCoordinates(generator.mapping, 'Sample full geofence'))
+    items['base_geofence'] = GenerateGeofences(ParseCoordinates(generator.mapping, 'Base geofence'))
+    items['landing_site_geofence'] = GenerateGeofences(ParseCoordinates(generator.mapping, 'Sample remote landing site'))
+    items['mission_geofence'] = GenerateGeofences(ParseCoordinates(generator.mapping, 'Sample full geofence'))
     
     return items
 
