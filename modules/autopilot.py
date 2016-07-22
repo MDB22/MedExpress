@@ -57,6 +57,7 @@ class Autopilot():
         cmds = self.vehicle.commands
         cmds.download()
         cmds.wait_ready()
+        print("Home location details:")
         print(self.vehicle.home_location)
 
         # Set base location

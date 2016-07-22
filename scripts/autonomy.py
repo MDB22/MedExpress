@@ -1,7 +1,7 @@
 
 from flight import *
 from command import *
-from sensing import *
+from sensors import *
 from ground_station import *
 from autopilot import *
 
@@ -16,7 +16,7 @@ def run():
 	if device == 'udp':
 		# Connection string for communication to Pixhawk via UDP
 		device_address = '127.0.0.1:14551'
-	elif device == 'sitl':
+	elif device == 'tcp':
 		# Connection string for communication with a headless SITL instance
 		device_address = 'tcp:127.0.0.1:5760'
 	elif device == 'telemetry' or device == 'usb-windows':
@@ -35,11 +35,18 @@ def run():
 	# Connect to the autopilot
 	pixhawk = Autopilot(device_address, mission_info, None, None)
 
+	vehicle = pixhawk.vehicle
+
+	# Instantiate other process
+	sensors = Sensors(vehicle)
+
 	# Activate the processes
 	pixhawk.start()
+	sensors.start()
 
 	# About to exit script, make sure we cleanup
 	pixhawk.join()
+	sensors.join()
 
 	print('Mission complete.')
 
@@ -48,7 +55,7 @@ def parse_args():
 	# Setup command line arguments
 	parser = argparse.ArgumentParser(description='Executes autonomous mission on a UAV.')
 	parser.add_argument('--connection-type', dest='device', required=True,
-		choices=['udp', 'sitl', 'telemetry', 'usb-windows', 'usb-linux', 'serial'],
+		choices=['udp', 'tcp', 'telemetry', 'usb-windows', 'usb-linux', 'serial'],
 		help='Device to connect to for flight commands')
 	parser.add_argument('--mission-file', dest='mission', required=True,
 		help='File path to locate mission KMZ file')
