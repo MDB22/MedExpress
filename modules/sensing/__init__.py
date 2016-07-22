@@ -1,5 +1,2 @@
-#from camera import *
-#from lidar import *
-#from lidarSystem import *
-#from servoControl import *
-#from ultrasonic import *
+from external_sensors import *
+from internal_sensors import *
