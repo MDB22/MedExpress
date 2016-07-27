@@ -92,6 +92,7 @@ for cnt in contours:
         if w < 400: w = 400
         
         hog_buffer = img_hist[y:y+h,x:x+w]
+        haar_buffer = img_hist[y:y+h,x:x+w]
         detection_queue.insert(0,hog_buffer)
         
        
@@ -101,8 +102,11 @@ for cnt in contours:
 
 #iterate through the detected objects queue
 
-hog = cv2.HOGDescriptor()
-hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+#hog = cv2.HOGDescriptor()
+#hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+
+haar = cv2.CascadeClassifier(cv2.CascadeClassifier_getDefaultPeopleDetector())
+
 count = 1
 
 while detection_queue:
@@ -112,9 +116,9 @@ while detection_queue:
     print "ANALYSING OBJECT ", count
     print "OBJECT SHAPE :: ", object_query.shape
     print " >> RUNNING HOG"
-    (rects, weights) = hog.detectMultiScale(object_query, winStride=(4,4),
-                                                padding=(8,8), scale=1.05)
-    
+    #(rects, weights) = hog.detectMultiScale(object_query, winStride=(4,4),
+    #                                            padding=(8,8), scale=1.05)
+    #
     for (x,y,w,h) in rects:
         cv2.rectangle(hog_buffer, (x,y),(x+w,y+h),(0,0,255),2)
         print "   +HOG POS"
