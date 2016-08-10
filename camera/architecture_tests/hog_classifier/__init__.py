@@ -1,0 +1,1 @@
+from HOG_classifier import HOGClassifier

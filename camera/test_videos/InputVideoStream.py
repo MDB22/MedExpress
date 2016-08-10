@@ -35,4 +35,5 @@ class InputVideoStream:
 
     def stop(self):
         #indicate that the thread should be stopped
+        self.stream.release()
         self.stopped = True

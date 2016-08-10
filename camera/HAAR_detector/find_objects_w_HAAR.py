@@ -104,9 +104,12 @@ for cnt in contours:
 
 #hog = cv2.HOGDescriptor()
 #hog.setSVMDetector(cv2.HOGDescriptor_getDefaultPeopleDetector())
+bodyfull_path = '/home/pi/opencv-3.0.0/data/haarcascades/haarcascade_fullbody.xml'
+facefront_path = '/home/pi/opencv-3.0.0/data/haarcascades/haarcascade_frontalface_default.xml'
 
-body_cascade = cv2.CascadeClassifier('haar_classifiers/haarcascade_fullbody.xml')
-face_cascade = cv2.CascadeClassifier('haar_classifiers/haarcascade_frontalface_default.xml')
+
+body_cascade = cv2.CascadeClassifier(bodyfull_path)
+face_cascade = cv2.CascadeClassifier(facefront_path)
 count = 1
 
 while detection_queue:

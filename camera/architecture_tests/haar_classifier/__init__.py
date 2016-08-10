@@ -1,0 +1,1 @@
+from HAAR_classifier import HAARClassifier
