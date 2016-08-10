@@ -2,13 +2,10 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 import time
-
+import math
 #SAL
 from saliency import Saliency
-#HOG
-#from imutils.object_detection import non_max_supression
-#from imutils import paths
-#import imutils
+import locator as loc
 
 
 BUFFER = 40
@@ -51,10 +48,10 @@ for cnt in contours:
     radius = int(radius)+ BUFFER
     area = 3.141*(radius**2)
     
-    print "Object Detected :: AREA - ", area
+    #print "Object Detected :: AREA - ", area
     
     if area >= 30000 and area <= 40000:
-        print "IN RANGE AREA DETECTED"
+        #print "IN RANGE AREA DETECTED"
         cv2.circle(img_size_exclusion,center,radius,(0,255,255),2)
         cv2.putText(img_size_exclusion,str(area),center,font,1,(255,255,255),2,cv2.LINE_AA)
         cv2.drawContours(mask,[cnt],0,255,-1)
@@ -77,13 +74,11 @@ for cnt in contours:
         #required by the HOG detector
         a = 400 - h
         b = 400 - w
-        print "a::" , a
-        print "b::" , b
+        #print "a::" , a
+        #print "b::" , b
         if a > 0:
             y = int(y - 0.5*a)
-            print "y::", y
             h = 400
-            print "h::", h
         if b > 0:
             x = int(x - 0.5*b)
             w = 400
@@ -94,11 +89,14 @@ for cnt in contours:
         hog_buffer = img_hist[y:y+h,x:x+w]
         haar_buffer = img_hist[y:y+h,x:x+w]
         detection_queue.insert(0,hog_buffer)
-        
-       
-        
+        cv2.putText(img_sized,str(center),center,font,1,(0,255,255),2,cv2.LINE_AA)
+
+        altitude = 10
+        print "METHOD RETURN:->", loc.get_distance_from_pixel(img_sized.shape, center, altitude)
+
     cv2.circle(img_sized,center,radius,(0,255,0),2)
-    cv2.putText(img_sized,str(area),center,font,1,(255,255,255),2,cv2.LINE_AA)
+    cv2.putText(img_sized,str(area),center,font,1,(255,255,255),1,cv2.LINE_AA)
+    
 
 #iterate through the detected objects queue
 
@@ -113,9 +111,9 @@ while detection_queue:
     score = 0
     object_query = detection_queue.pop()
     obj = object_query.copy()
-    print "ANALYSING OBJECT ", count
-    print "OBJECT SHAPE :: ", object_query.shape
-    print " >> RUNNING HOG"
+    #print "ANALYSING OBJECT ", count
+    #print "OBJECT SHAPE :: ", object_query.shape
+    #print " >> RUNNING HOG"
     #(rects, weights) = hog.detectMultiScale(object_query, winStride=(4,4),
     #                                            padding=(8,8), scale=1.05)
     #
@@ -128,14 +126,7 @@ while detection_queue:
 
         for (x, y, w, h) in faces:
             print "FACE"
-            cv2.rectangle(haar_buffer,(x,y),(x+w,y+h), (255,0,0),2)
-        
-    #for (x,y,w,h) in rects:
-    #    cv2.rectangle(hog_buffer, (x,y),(x+w,y+h),(0,0,255),2)
-    #    print "   +HOG POS"
-    #print "OBJECT ", count, " SCORE :: ", score
-
-    
+            cv2.rectangle(haar_buffer,(x,y),(x+w,y+h), (255,0,0),2)   
 
 
     count = count + 1
@@ -148,43 +139,13 @@ fig = plt.figure(1)
 fig.suptitle("Detection Time: " + str(test_duration))
 #image 1
 sub1 = plt.subplot(211)
-sub1.set_title("Original Image")
+sub1.set_title("Detection Image")
 plt.imshow(cv2.cvtColor(img_sized,cv2.COLOR_BGR2RGB))
-#image 2
-sub2 = plt.subplot(212)
-sub2.set_title("Size Exclusion")
-plt.imshow(cv2.cvtColor(img_size_exclusion,cv2.COLOR_BGR2RGB))
-
-# figure 2
-plt.figure(2)
-
-#image 3
-sub1 = plt.subplot(221)
-sub1.set_title("Detected Object")
-plt.imshow(cv2.cvtColor(object_detected,cv2.COLOR_BGR2RGB))
-
-#image 4
-sub2 = plt.subplot(222)
-sub2.set_title("Negative Control")
-#plt.imshow(cv2.cvtColor(blank_example,cv2.COLOR_BGR2RGB))
-
-#image 5
-plt.subplot(223)
-for i,col in enumerate(color):
-            #hist = cv2.calcHist([object_detected],[i],None,[256],[0,256])
-            #plt.plot(hist,color=col)
-    pass
-
-#image 6
-plt.subplot(224)
-for i,col in enumerate(color):
-            #hist = cv2.calcHist([blank_example],[i],None,[256],[0,256])
-            #plt.plot(hist,color=col)
-    pass
-
+sub1 = plt.subplot(212)
+sub1.set_title("Object")
+plt.imshow(cv2.cvtColor(haar_buffer,cv2.COLOR_BGR2RGB))
+plt.show()
             
-#plt.show()
-            
-cv2.imshow('image',hog_buffer)
-cv2.waitKey(0)
-cv2.destroyAllWindows
+#cv2.imshow('image',hog_buffer)
+#cv2.waitKey(0)
+#cv2.destroyAllWindows

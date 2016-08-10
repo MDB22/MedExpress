@@ -136,7 +136,7 @@ def make_kml_file(geofence):
 
 
 
-def get_new_gps_coord(original_location, bearing, distance_M):
+def get_target_gps_coord(original_location, bearing, distance_M):
 	'Given original location, bearing and distance (in m) calculate new gps coords'
 	R = 6378.137 #Radius of the Earth
 	d_KM = distance_M/1000 #Distance in km
