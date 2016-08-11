@@ -2,40 +2,32 @@ import cv2
 import time
 from multiprocessing import Process
 from threading import Thread
-class InputVideoStream:
 
-  def __init__(self, src):
+class InputVideoStream(Process):
+
+  def __init__(self, src, frame_queue, queue_lock):
     # initilize the sream and read the first frame
+    Process.__init__(self)
     self.stream = cv2.VideoCapture(src)
     (self.grabbed, self.frame) = self.stream.read()
     self.stopped= False
     self.frames = 0
-    self.p = Process(target=self.update, args=())
+    self.frame_queue = frame_queue
+    self.queue_lock = queue_lock
 
-  def start(self):
-    self.p.start()
-    return self
-
-  def update(self):
-    print "update called"
+  def run(self):
     while True:
-      (self.grabbed, self.frame) = self.stream.read()
-      self.frames = self.frames + 1
-      #print self.grabbed, " -> ", self.frames
-      print "stream read"
-      if cv2.waitKey(1) & 0xFF == ord('q'):
-        return
-    #self.grabbed = False;
-    print "update ended"
-      
-  def read(self):
-    return (self.grabbed, self.frame)
+      (grabbed, frame) = self.stream.read()
+      print "vid"
+      if grabbed:
+        self.frames = self.frames + 1
+        with self.queue_lock:
+          print "got lock"
+          self.frame_queue.put(frame)
 
-  def stop(self):
-    print "Thread Stopped!"
-    self.p.terminate()
-    self.stream.release()
-    self.stopped = True
 
-  def isGrabbed(self):
-    return self.grabbed
+        print self.frames
+      else:
+        print "NF!"
+
+
