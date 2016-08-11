@@ -3,8 +3,9 @@
 # as per the report option 2.2
 from fps import FPS
 from saliency import Saliency
+
 from video_streams import InputVideoStream
-from multiprocessing import Queue, Lock
+from multiprocessing import Queue, Lock, Process
 import numpy as np
 import cv2
 import time
@@ -14,43 +15,69 @@ import time
 # out = cv2.VideoWriter('outputs/output_sal_proc_'+str(time.time())+'.avi',fourcc, 20.0, (1280,720))
 # stream = cv2.VideoCapture('test.avi')
 
+def import_image(frame_queue, queue_lock):
+  
+  stream = cv2.VideoCapture('test.avi')
+  timeOut = 0
+
+  frames = 0
+  
+  while timeOut < 500:
+    (ret, frame) = stream.read()
+
+    if ret:
+      timeOut = 0
+      frame = cv2.resize(frame, (1280,720))
+      #print frame_queue.qsize()
+      with queue_lock:
+        if frame_queue.qsize() < 4:
+          frame_queue.put(frame)
+          frames = frames + 1
+          print "frame::", frames, ": Q - ", frame_queue.qsize()
+        else:
+          pass
+          #print "waiting for frame queue"
+  print "import timeout"
+
+
 queue_lock = Lock()
 frame_queue = Queue()
 
-stream = InputVideoStream('test.avi', frame_queue, queue_lock)
+stream = Process(target=import_image, args=(frame_queue, queue_lock))
 time.sleep(1)
 stream.start()
 
-time.sleep(2)
 frames = 0
 
 # loop over some frames
 fps = FPS()
 fps.start()
 
-while frames < 30:
-  print "sal"
+timeOut = 0
+
+while True:
+  print "Main Thread Queue - > ",frame_queue.qsize() 
   with queue_lock:
     if not frame_queue.empty():
-      print "PING"
-      print "got lock"
+      timeOut = 0
       frame = frame_queue.get()
       sal = Saliency(frame)
       sal_map = sal.get_saliency_map()
-    #sal_frame = (sal_map*255).round().astype(np.uint8)
-    #frame = cv2.cvtColor(sal_frame, cv2.COLOR_GRAY2BGR)
-    #out.write(frame)
+      sal_frame = (sal_map*255).round().astype(np.uint8)
+      frame = cv2.cvtColor(sal_frame, cv2.COLOR_GRAY2BGR)
+      #out.write(frame)
       frames = frames + 1
       fps.update()
-  
     else:
-      break
+        timeOut = timeOut + 1
+        if timeOut > 500000:
+          break
+        pass
 
 fps.stop()
-#out.release()
-stream.join()
+stream.terminate()
 cv2.destroyAllWindows()
-
+#out.release()
 
 print "FPS :: ", fps.fps()
 print "DUR :: ", fps.elapsed()
