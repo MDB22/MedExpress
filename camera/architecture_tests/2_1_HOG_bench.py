@@ -8,9 +8,9 @@ import time
 import imutils
 
 #video capture set up
-fourcc = cv2.VideoWriter_fourcc(*'XVID')
-out = cv2.VideoWriter('outputs/output'+str(time.time())+'.avi',fourcc, 20.0, (720,480))
-stream = cv2.VideoCapture('test.avi')
+#fourcc = cv2.VideoWriter_fourcc(*'XVID')
+#out = cv2.VideoWriter('outputs/output'+str(time.time())+'.avi',fourcc, 20.0, (720,480))
+#stream = cv2.VideoCapture('test.avi')
 
 #image capture
 image = cv2.imread('test_image.jpg', 1)
@@ -28,7 +28,7 @@ for (x,y,w,h) in rects:
   cv2.rectangle(image, (x,y),(x+w,y+h),(0,0,255),2)
   print "!PING!"
 
-cv2.imwrite('images/image'+str(time.time())+'.jpg', image)
+cv2.imwrite('images/image_hog_bench_'+str(time.time())+'.jpg', image)
 
 
 

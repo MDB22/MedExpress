@@ -8,7 +8,7 @@ import time
 
 #video capture set up
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-out = cv2.VideoWriter('outputs/output'+str(time.time())+'.avi',fourcc, 20.0, (1280,720))
+out = cv2.VideoWriter('outputs/output_haar_mix_'+str(time.time())+'.avi',fourcc, 20.0, (1280,720))
 stream = cv2.VideoCapture('test.avi')
 
 # set up the HAAR classifier

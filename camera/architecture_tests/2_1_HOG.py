@@ -9,7 +9,7 @@ import imutils
 
 #video capture set up
 fourcc = cv2.VideoWriter_fourcc(*'XVID')
-out = cv2.VideoWriter('outputs/output'+str(time.time())+'.avi',fourcc, 20.0, (720,480))
+out = cv2.VideoWriter('outputs/output_hog_'+str(time.time())+'.avi',fourcc, 20.0, (720,480))
 stream = cv2.VideoCapture('test.avi')
 
 #image capture

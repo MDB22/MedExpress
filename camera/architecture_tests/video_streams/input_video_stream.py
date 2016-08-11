@@ -1,5 +1,7 @@
 import cv2
-
+import time
+from multiprocessing import Process
+from threading import Thread
 class InputVideoStream:
 
   def __init__(self, src):
@@ -7,20 +9,33 @@ class InputVideoStream:
     self.stream = cv2.VideoCapture(src)
     (self.grabbed, self.frame) = self.stream.read()
     self.stopped= False
+    self.frames = 0
+    self.p = Process(target=self.update, args=())
 
   def start(self):
-    Process(target=self.update, args=()).start()
+    self.p.start()
     return self
 
   def update(self):
+    print "update called"
     while True:
-      if self.stopped:
-        return
       (self.grabbed, self.frame) = self.stream.read()
-
+      self.frames = self.frames + 1
+      #print self.grabbed, " -> ", self.frames
+      print "stream read"
+      if cv2.waitKey(1) & 0xFF == ord('q'):
+        return
+    #self.grabbed = False;
+    print "update ended"
+      
   def read(self):
-    return self.frame
+    return (self.grabbed, self.frame)
 
   def stop(self):
+    print "Thread Stopped!"
+    self.p.terminate()
     self.stream.release()
-    self.stopped
+    self.stopped = True
+
+  def isGrabbed(self):
+    return self.grabbed
