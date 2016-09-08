@@ -3,7 +3,7 @@
 # as per the report option 2.2
 from fps import FPS
 from saliency import Saliency
-
+from saliency import MPSaliency
 from video_streams import InputVideoStream
 from multiprocessing import Queue, Lock, Process
 import numpy as np
@@ -30,7 +30,7 @@ def import_image(frame_queue, queue_lock):
       frame = cv2.resize(frame, (1280,720))
       #print frame_queue.qsize()
       with queue_lock:
-        if frame_queue.qsize() < 4:
+        if frame_queue.qsize() < 3:
           frame_queue.put(frame)
           frames = frames + 1
           print "frame::", frames, ": Q - ", frame_queue.qsize()
@@ -55,24 +55,24 @@ fps.start()
 
 timeOut = 0
 
-while True:
-  print "Main Thread Queue - > ",frame_queue.qsize() 
+
+
+while frames < 300:
+  #print "Main Thread Queue - > ",frame_queue.qsize() 
   with queue_lock:
     if not frame_queue.empty():
       timeOut = 0
       frame = frame_queue.get()
-      sal = Saliency(frame)
+      sal = MPSaliency(frame)
       sal_map = sal.get_saliency_map()
-      sal_frame = (sal_map*255).round().astype(np.uint8)
-      frame = cv2.cvtColor(sal_frame, cv2.COLOR_GRAY2BGR)
+      #sal_frame = (sal_map*255).round().astype(np.uint8)
+      #frame = cv2.cvtColor(sal_frame, cv2.COLOR_GRAY2BGR)
       #out.write(frame)
       frames = frames + 1
       fps.update()
     else:
-        timeOut = timeOut + 1
-        if timeOut > 500000:
-          break
         pass
+  
 
 fps.stop()
 stream.terminate()
